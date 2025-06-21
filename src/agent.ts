@@ -17,6 +17,8 @@ Common Japanese commands:
 - マス = square/cell
 
 Always respond with appropriate tool calls to move the block based on user intent.`,
-  model: google('gemini-2.0-flash-exp'),
+  model: google('gemini-2.0-flash-exp', {
+    apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  }),
   tools: { moveBlock },
 });

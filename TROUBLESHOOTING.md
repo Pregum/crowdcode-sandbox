@@ -87,3 +87,24 @@ Mastraの`mastra dev`コマンドは、完全なMastraフレームワークプ�
 - `@mastra/core` v0.10.6の正しいAPI形式
 - AI SDK Googleプロバイダーの使用が必須
 - `generate()`メソッドに`maxSteps`オプションでツール使用を有効化
+
+---
+
+## 時刻(2025/06/21 12:15)
+
+## 概要
+Google Generative AI API keyが見つからないエラーが発生。環境変数名の不一致が原因
+
+## 原因
+`@ai-sdk/google`パッケージは`GOOGLE_GENERATIVE_AI_API_KEY`環境変数を期待しているが、プロジェクトでは`GOOGLE_API_KEY`を使用していた
+
+## 対策方法
+1. `.env`ファイルに`GOOGLE_GENERATIVE_AI_API_KEY`を追加
+2. `agent.ts`でモデル設定時に`apiKey`パラメーターを明示的に指定
+   - `google('model', { apiKey: process.env.GOOGLE_API_KEY })`
+3. `.env.example`も同様に更新
+
+## 関連情報
+- `@ai-sdk/google`の標準環境変数名は`GOOGLE_GENERATIVE_AI_API_KEY`
+- 両方の環境変数を設定することで互換性を保持
+- モデル初期化時にapiKeyオプションで明示的指定も可能
