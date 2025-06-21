@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket as WSWebSocket } from 'ws';
 import { startChatBridge } from './bridge.js';
 
 const wss = new WebSocketServer({ port: 8765 });
@@ -14,7 +14,7 @@ interface Operation {
 }
 
 let gameState: GameState = { x: 5, y: 5 };
-const clients = new Set<WebSocket>();
+const clients = new Set<WSWebSocket>();
 
 wss.on('connection', (ws) => {
   clients.add(ws);

@@ -6,14 +6,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export async function startChatBridge() {
-  const listener = new ChatListener({ videoId: process.env.VIDEO_ID! });
+  const listener = new ChatListener(process.env.VIDEO_ID!);
 
-  listener.on('chat', async (chat) => {
-    console.log(`[${chat.author.name}]: ${chat.message}`);
+  listener.onMessage(async (message) => {
+    console.log(`[${message.author}]: ${message.text}`);
     
     try {
       const response = await gameAgent.run({
-        messages: [{ role: 'user', content: chat.message }],
+        messages: [{ role: 'user', content: message.text }],
       });
 
       if (response.toolCalls && response.toolCalls.length > 0) {
@@ -31,10 +31,6 @@ export async function startChatBridge() {
     }
   });
 
-  listener.on('error', (error) => {
-    console.error('YouTube chat error:', error);
-  });
-
-  await listener.start();
+  listener.start();
   console.log('YouTube chat listener started');
 }

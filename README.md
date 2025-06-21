@@ -41,14 +41,20 @@ npm install
 
 ```bash
 npm run dev
-# または
-mastra dev
 ```
 
-これにより以下が起動します：
-- WebSocketサーバー（ポート8765）
+これにより以下が同時起動します：
+- WebSocketサーバー（ポート8765）+ YouTube Liveチャットリスナー
 - Vite開発サーバー（ポート3000）
-- YouTube Liveチャットリスナー
+
+または個別に起動：
+```bash
+# サーバーのみ起動
+npm run server
+
+# クライアントのみ起動（別ターミナル）
+npm run client
+```
 
 ## 使い方
 
@@ -69,12 +75,16 @@ mastra dev
 
 ## 技術スタック
 
-- **Mastra**: AIエージェントフレームワーク
+- **@mastra/core**: AIエージェントフレームワーク
 - **Gemini 2.5 Flash**: 自然言語処理
 - **@letruxux/youtube-chat**: YouTube Liveチャット取得
 - **WebSocket**: リアルタイム通信
 - **Vite**: フロントエンド開発サーバー
 - **TypeScript**: 型安全な開発
+
+## トラブルシューティング
+
+セットアップ中に問題が発生した場合は、[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)を参照してください。
 
 ## プロジェクト構成
 

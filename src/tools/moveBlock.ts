@@ -1,4 +1,4 @@
-import { createTool } from 'mastra';
+import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
 export const moveBlock = createTool({

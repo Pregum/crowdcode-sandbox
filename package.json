@@ -3,19 +3,24 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "mastra dev"
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "tsx watch src/server.ts",
+    "client": "vite"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@letruxux/youtube-chat": "^2.1.1",
+    "@letruxux/youtube-chat": "^1.0.7",
+    "@mastra/core": "^0.10.6",
     "dotenv": "^16.4.5",
     "mastra": "^0.1.46",
     "vite": "^5.4.11",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/ws": "^8.5.13",
+    "concurrently": "^9.1.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

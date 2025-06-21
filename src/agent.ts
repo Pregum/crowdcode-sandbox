@@ -1,11 +1,8 @@
-import { Agent } from 'mastra';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Agent } from '@mastra/core/agent';
 import { moveBlock } from './tools/moveBlock.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
 export const gameAgent = new Agent({
   name: 'game-controller',
