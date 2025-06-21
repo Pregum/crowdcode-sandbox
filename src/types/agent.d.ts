@@ -4,25 +4,26 @@ declare module '@mastra/core/agent' {
   export interface AgentConfig {
     name: string;
     instructions: string;
-    model: {
-      provider: string;
-      name: string;
-      toolChoice?: string;
-    };
-    tools: Tool[];
+    model: any; // AI SDK model
+    tools: Record<string, Tool>;
   }
 
   export interface ToolCall {
-    name: string;
-    arguments: any;
+    toolName: string;
+    args: any;
   }
 
   export interface AgentResponse {
     toolCalls?: ToolCall[];
+    text?: string;
+  }
+
+  export interface GenerateOptions {
+    maxSteps?: number;
   }
 
   export class Agent {
     constructor(config: AgentConfig);
-    run(params: { messages: Array<{ role: string; content: string }> }): Promise<AgentResponse>;
+    generate(messages: Array<{ role: string; content: string }>, options?: GenerateOptions): Promise<AgentResponse>;
   }
 }

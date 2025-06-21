@@ -22,17 +22,19 @@ export async function startChatBridge() {
     console.log(`[${message.author}]: ${message.text}`);
     
     try {
-      const response = await gameAgent.run({
-        messages: [{ role: 'user', content: message.text }],
+      const response = await gameAgent.generate([
+        { role: 'user', content: message.text }
+      ], {
+        maxSteps: 5
       });
 
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
-          if (toolCall.name === 'move_block') {
-            console.log(`🎮 ブロックを移動: dx=${toolCall.arguments.dx}, dy=${toolCall.arguments.dy}`);
+          if (toolCall.toolName === 'moveBlock') {
+            console.log(`🎮 ブロックを移動: dx=${toolCall.args.dx}, dy=${toolCall.args.dy}`);
             broadcastOp({
               name: 'move_block',
-              arguments: toolCall.arguments as { dx: number; dy: number },
+              arguments: toolCall.args as { dx: number; dy: number },
             });
           }
         }

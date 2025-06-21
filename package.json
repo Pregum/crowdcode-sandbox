@@ -11,6 +11,7 @@
     "test:messages": "node scripts/test-messages.js"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.19",
     "@google/generative-ai": "^0.21.0",
     "@letruxux/youtube-chat": "^1.0.7",
     "@mastra/core": "^0.10.6",

@@ -62,3 +62,28 @@ Mastraの`mastra dev`コマンドは、完全なMastraフレームワークプ�
 - `mastra` v0.1.46はCLIパッケージのみ
 - `@mastra/core` v0.10.6がSDK機能を提供
 - APIは同じだが、パッケージ構造が変更されている
+
+---
+
+## 時刻(2025/06/21 12:10)
+
+## 概要
+`gameAgent.run is not a function`エラーが発生。Mastraエージェントの実行方法が間違っていた
+
+## 原因
+1. `@mastra/core`のAgentクラスには`run()`メソッドが存在しない
+2. 正しくは`generate()`メソッドを使用する必要がある
+3. モデル設定形式が間違っていた（AI SDK形式でない）
+4. ツールの構造が配列ではなくオブジェクト形式である必要がある
+
+## 対策方法
+1. `@ai-sdk/google`パッケージを追加インストール
+2. モデル設定を`google('gemini-2.0-flash-exp')`形式に変更
+3. `gameAgent.run()`を`gameAgent.generate()`に変更
+4. ツール呼び出しの応答形式を修正（`toolCall.toolName`、`toolCall.args`）
+5. メッセージ形式を直接配列に変更
+
+## 関連情報
+- `@mastra/core` v0.10.6の正しいAPI形式
+- AI SDK Googleプロバイダーの使用が必須
+- `generate()`メソッドに`maxSteps`オプションでツール使用を有効化

@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent';
+import { google } from '@ai-sdk/google';
 import { moveBlock } from './tools/moveBlock.js';
 import dotenv from 'dotenv';
 
@@ -16,10 +17,6 @@ Common Japanese commands:
 - マス = square/cell
 
 Always respond with appropriate tool calls to move the block based on user intent.`,
-  model: {
-    provider: 'GOOGLE',
-    name: 'gemini-2.0-flash-exp',
-    toolChoice: 'auto',
-  },
-  tools: [moveBlock],
+  model: google('gemini-2.0-flash-exp'),
+  tools: { moveBlock },
 });
