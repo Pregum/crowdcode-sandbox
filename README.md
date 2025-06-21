@@ -9,6 +9,7 @@ YouTube Liveのチャットメッセージを自然言語処理し、ブラウ�
 - WebSocketによるリアルタイム通信
 - 20×15グリッド上でのブロック移動表示
 - 操作ログの表示
+- ファイルシステム操作ツール（Vibe Coding基盤）
 
 ## セットアップ
 
@@ -120,18 +121,50 @@ npm run test:messages
 
 セットアップ中に問題が発生した場合は、[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)を参照してください。
 
+## ファイルシステムツール（Vibe Coding基盤）
+
+プロジェクトには、自然言語でファイル操作ができるツールセットが含まれています：
+
+### 使用可能なツール
+- **readFile**: ファイルの内容を読み取り
+- **writeFile**: ファイルの作成・更新
+- **listFiles**: ディレクトリ内のファイル一覧
+- **createDirectory**: ディレクトリの作成
+- **deleteFile**: ファイル・ディレクトリの削除
+- **moveFile**: ファイル・ディレクトリの移動・リネーム
+
+### テスト方法
+```bash
+# ファイルシステムエージェントのテスト
+npm run test:filesystem
+```
+
+テストモードでの使用例：
+- "srcディレクトリの中身を見せて"
+- "test.txtというファイルを作って、'Hello World'と書いて"
+- "oldファイルをnewにリネームして"
+- "tempディレクトリを作成して"
+
 ## プロジェクト構成
 
 ```
 /
 ├─ src/
-│   ├─ tools/moveBlock.ts    # ブロック移動ツール
-│   ├─ agent.ts              # Mastraエージェント設定
+│   ├─ tools/
+│   │   ├─ moveBlock.ts      # ブロック移動ツール
+│   │   └─ filesystem/       # ファイルシステムツール
+│   │       ├─ readFile.ts
+│   │       ├─ writeFile.ts
+│   │       ├─ listFiles.ts
+│   │       ├─ createDirectory.ts
+│   │       ├─ deleteFile.ts
+│   │       └─ moveFile.ts
+│   ├─ agent.ts              # ゲームコントローラーエージェント
+│   ├─ filesystemAgent.ts    # ファイルシステムエージェント
 │   ├─ bridge.ts             # YouTubeチャット連携
 │   └─ server.ts             # WebSocketサーバー
 ├─ public/
 │   └─ index.html            # キャンバス表示
-├─ mastra.config.ts          # Mastra設定
 └─ vite.config.ts            # Vite設定
 ```
 

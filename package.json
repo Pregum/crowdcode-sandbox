@@ -8,7 +8,8 @@
     "server": "tsx watch src/server.ts",
     "server:test": "TEST_MODE=true tsx watch src/server.ts",
     "client": "vite",
-    "test:messages": "node scripts/test-messages.js"
+    "test:messages": "node scripts/test-messages.js",
+    "test:filesystem": "tsx src/testFilesystem.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
