@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Live × Gemini Flash PoC</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+      font-family: monospace;
+    }
+    #canvas {
+      border: 1px solid #444;
+      display: block;
+      margin-bottom: 20px;
+    }
+    #logs {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .log-entry {
+      margin: 4px 0;
+      color: #0ff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="240"></canvas>
+  <div id="logs"></div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const logs = document.getElementById('logs');
+    
+    let state = { x: 5, y: 5 };
+    const opHistory = [];
+    const cellSize = 16;
+    const gridWidth = 20;
+    const gridHeight = 15;
+    
+    function drawGrid() {
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, 0, 400, 240);
+      
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      
+      for (let x = 0; x <= gridWidth; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * cellSize, 0);
+        ctx.lineTo(x * cellSize, gridHeight * cellSize);
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y <= gridHeight; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * cellSize);
+        ctx.lineTo(gridWidth * cellSize, y * cellSize);
+        ctx.stroke();
+      }
+    }
+    
+    function drawPlayer() {
+      ctx.fillStyle = '#0ff';
+      ctx.fillRect(state.x * cellSize, state.y * cellSize, cellSize, cellSize);
+    }
+    
+    function updateLogs() {
+      const recent = opHistory.slice(-4).reverse();
+      logs.innerHTML = recent.map(op => 
+        `<div class="log-entry">${op.name}(dx: ${op.arguments.dx}, dy: ${op.arguments.dy})</div>`
+      ).join('');
+    }
+    
+    function render() {
+      drawGrid();
+      drawPlayer();
+      requestAnimationFrame(render);
+    }
+    
+    const ws = new WebSocket('ws://localhost:8765');
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'state') {
+        state = data.state;
+      } else if (data.type === 'op') {
+        opHistory.push(data.op);
+        updateLogs();
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    
+    render();
+  </script>
+</body>
+</html>

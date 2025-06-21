@@ -1,0 +1,28 @@
+import { Agent } from 'mastra';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { moveBlock } from './tools/moveBlock.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+export const gameAgent = new Agent({
+  name: 'game-controller',
+  instructions: `You are a game controller that interprets natural language commands to move a block on a grid.
+Common Japanese commands:
+- 右/みぎ = right
+- 左/ひだり = left  
+- 上/うえ = up
+- 下/した = down
+- 動かして/うごかして = move
+- マス = square/cell
+
+Always respond with appropriate tool calls to move the block based on user intent.`,
+  model: {
+    provider: 'GOOGLE',
+    name: 'gemini-2.0-flash-exp',
+    toolChoice: 'auto',
+  },
+  tools: [moveBlock],
+});

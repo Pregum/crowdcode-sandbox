@@ -1,0 +1,22 @@
+{
+  "name": "youtube-gemini-mastra-poc",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "mastra dev"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@letruxux/youtube-chat": "^2.1.1",
+    "dotenv": "^16.4.5",
+    "mastra": "^0.1.46",
+    "vite": "^5.4.11",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
