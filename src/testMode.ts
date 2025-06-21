@@ -23,8 +23,15 @@ export async function startTestMode() {
         maxSteps: 5
       });
 
+      console.log('🔍 デバッグ情報:');
+      console.log('  - text:', response.text);
+      console.log('  - toolCalls:', response.toolCalls);
+      console.log('  - response keys:', Object.keys(response));
+      console.log('  - response:', JSON.stringify(response, null, 2));
+
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
+          console.log(`🔧 ツール呼び出し検出: ${toolCall.toolName}`);
           if (toolCall.toolName === 'moveBlock') {
             console.log(`🎮 ブロックを移動: dx=${toolCall.args.dx}, dy=${toolCall.args.dy}`);
             broadcastOp({
@@ -34,7 +41,7 @@ export async function startTestMode() {
           }
         }
       } else {
-        console.log('❌ コマンドが認識されませんでした');
+        console.log('❌ コマンドが認識されませんでした（ツール呼び出しなし）');
       }
     } catch (error) {
       console.error('❌ エラー:', error);
