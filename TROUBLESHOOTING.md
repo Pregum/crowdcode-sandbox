@@ -108,3 +108,47 @@ Google Generative AI API keyが見つからないエラーが発生。環境変�
 - `@ai-sdk/google`の標準環境変数名は`GOOGLE_GENERATIVE_AI_API_KEY`
 - 両方の環境変数を設定することで互換性を保持
 - モデル初期化時にapiKeyオプションで明示的指定も可能
+
+---
+
+## 時刻(2025/06/21 12:35)
+
+## 概要
+Geminiはツールを正常に呼び出しているが、Mastraの`response.toolCalls`が空配列になる問題
+
+## 原因
+Mastra v0.10.6では、ツール呼び出し情報が`response.toolCalls`ではなく`response.steps`配列内に格納される。Geminiは正常にツールを呼び出しているが、APIレスポンス構造の違いによりツール呼び出しが検出されていなかった。
+
+## 対策方法
+1. `response.toolCalls`と`response.steps`の両方をチェックするロジックに変更
+2. `response.steps`配列内の各stepの`toolCalls`を確認
+3. 型定義に`steps`プロパティを追加
+
+```typescript
+// 修正前
+if (response.toolCalls && response.toolCalls.length > 0) {
+  // ツール処理
+}
+
+// 修正後
+let toolCallsFound = false;
+// response.toolCallsをチェック
+if (response.toolCalls && response.toolCalls.length > 0) {
+  // ツール処理
+  toolCallsFound = true;
+}
+// response.stepsからもチェック
+if (!toolCallsFound && response.steps) {
+  for (const step of response.steps) {
+    if (step.toolCalls && step.toolCalls.length > 0) {
+      // ツール処理
+      toolCallsFound = true;
+    }
+  }
+}
+```
+
+## 関連情報
+- Mastra v0.10.6のAPIレスポンス構造では`steps`配列が主要なツール情報源
+- Geminiは正常にツールを実行しているが、Mastraのレスポンス構造が異なる
+- この問題により表面的には「ツールが呼ばれていない」ように見えていた

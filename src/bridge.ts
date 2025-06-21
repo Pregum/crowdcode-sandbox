@@ -28,6 +28,8 @@ export async function startChatBridge() {
         maxSteps: 5
       });
 
+      // response.toolCallsをチェック
+      let toolCallsFound = false;
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
           if (toolCall.toolName === 'moveBlock') {
@@ -36,9 +38,30 @@ export async function startChatBridge() {
               name: 'move_block',
               arguments: toolCall.args as { dx: number; dy: number },
             });
+            toolCallsFound = true;
           }
         }
-      } else {
+      }
+
+      // response.stepsからもツール呼び出しをチェック
+      if (!toolCallsFound && response.steps) {
+        for (const step of response.steps) {
+          if (step.toolCalls && step.toolCalls.length > 0) {
+            for (const toolCall of step.toolCalls) {
+              if (toolCall.toolName === 'moveBlock') {
+                console.log(`🎮 ブロックを移動: dx=${toolCall.args.dx}, dy=${toolCall.args.dy}`);
+                broadcastOp({
+                  name: 'move_block',
+                  arguments: toolCall.args as { dx: number; dy: number },
+                });
+                toolCallsFound = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (!toolCallsFound) {
         console.log('❌ コマンドが認識されませんでした');
       }
     } catch (error) {

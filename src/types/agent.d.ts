@@ -16,6 +16,11 @@ declare module '@mastra/core/agent' {
   export interface AgentResponse {
     toolCalls?: ToolCall[];
     text?: string;
+    steps?: Array<{
+      stepType: string;
+      toolCalls?: ToolCall[];
+      [key: string]: any;
+    }>;
   }
 
   export interface GenerateOptions {

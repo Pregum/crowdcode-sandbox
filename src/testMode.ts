@@ -26,21 +26,44 @@ export async function startTestMode() {
       console.log('🔍 デバッグ情報:');
       console.log('  - text:', response.text);
       console.log('  - toolCalls:', response.toolCalls);
-      console.log('  - response keys:', Object.keys(response));
-      console.log('  - response:', JSON.stringify(response, null, 2));
+      console.log('  - steps length:', response.steps?.length || 0);
 
+      // response.toolCallsをチェック
+      let toolCallsFound = false;
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
-          console.log(`🔧 ツール呼び出し検出: ${toolCall.toolName}`);
+          console.log(`🔧 ツール呼び出し検出（toolCalls）: ${toolCall.toolName}`);
           if (toolCall.toolName === 'moveBlock') {
             console.log(`🎮 ブロックを移動: dx=${toolCall.args.dx}, dy=${toolCall.args.dy}`);
             broadcastOp({
               name: 'move_block',
               arguments: toolCall.args as { dx: number; dy: number },
             });
+            toolCallsFound = true;
           }
         }
-      } else {
+      }
+
+      // response.stepsからもツール呼び出しをチェック
+      if (!toolCallsFound && response.steps) {
+        for (const step of response.steps) {
+          if (step.toolCalls && step.toolCalls.length > 0) {
+            for (const toolCall of step.toolCalls) {
+              console.log(`🔧 ツール呼び出し検出（steps）: ${toolCall.toolName}`);
+              if (toolCall.toolName === 'moveBlock') {
+                console.log(`🎮 ブロックを移動: dx=${toolCall.args.dx}, dy=${toolCall.args.dy}`);
+                broadcastOp({
+                  name: 'move_block',
+                  arguments: toolCall.args as { dx: number; dy: number },
+                });
+                toolCallsFound = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (!toolCallsFound) {
         console.log('❌ コマンドが認識されませんでした（ツール呼び出しなし）');
       }
     } catch (error) {
@@ -64,9 +87,7 @@ export async function startTestMode() {
     });
   };
 
-  askQuestion();
-
-  // HTTP API も同時に起動
+  // HTTP API を先に起動
   const app = express();
   app.use(express.json());
 
@@ -98,6 +119,9 @@ export async function startTestMode() {
     console.log('        -H "Content-Type: application/json" \\');
     console.log('        -d \'{"message":"右に動かして","author":"テスト"}\'');
     console.log('🎮 またはコンソールから直接入力も可能です\n');
+    
+    // HTTPサーバー起動後にコンソール入力開始
+    askQuestion();
   });
 
   // プロセス終了時の処理
