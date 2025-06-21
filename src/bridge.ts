@@ -1,11 +1,21 @@
 import { ChatListener } from '@letruxux/youtube-chat';
 import { gameAgent } from './agent.js';
 import { broadcastOp } from './server.js';
+import { startTestMode } from './testMode.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 export async function startChatBridge() {
+  const isTestMode = process.env.TEST_MODE === 'true';
+  
+  if (isTestMode) {
+    console.log('🧪 テストモードで起動中...');
+    await startTestMode();
+    return;
+  }
+
+  console.log('📺 YouTube Liveモードで起動中...');
   const listener = new ChatListener(process.env.VIDEO_ID!);
 
   listener.onMessage(async (message) => {
@@ -19,12 +29,15 @@ export async function startChatBridge() {
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
           if (toolCall.name === 'move_block') {
+            console.log(`🎮 ブロックを移動: dx=${toolCall.arguments.dx}, dy=${toolCall.arguments.dy}`);
             broadcastOp({
               name: 'move_block',
               arguments: toolCall.arguments as { dx: number; dy: number },
             });
           }
         }
+      } else {
+        console.log('❌ コマンドが認識されませんでした');
       }
     } catch (error) {
       console.error('Error processing chat:', error);
