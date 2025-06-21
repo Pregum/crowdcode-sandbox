@@ -37,7 +37,7 @@ export async function startChatBridge() {
             broadcastOp({
               name: 'move_block',
               arguments: toolCall.args as { dx: number; dy: number },
-            });
+            }, message.author);
             toolCallsFound = true;
           }
         }
@@ -53,7 +53,7 @@ export async function startChatBridge() {
                 broadcastOp({
                   name: 'move_block',
                   arguments: toolCall.args as { dx: number; dy: number },
-                });
+                }, message.author);
                 toolCallsFound = true;
               }
             }

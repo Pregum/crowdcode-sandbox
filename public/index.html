@@ -36,8 +36,12 @@
     const ctx = canvas.getContext('2d');
     const logs = document.getElementById('logs');
     
-    let state = { x: 5, y: 5 };
-    const opHistory = [];
+    let gameData = {
+      state: { x: 5, y: 5 },
+      history: [],
+      recentOps: []
+    };
+    
     const cellSize = 16;
     const gridWidth = 20;
     const gridHeight = 15;
@@ -66,14 +70,32 @@
     
     function drawPlayer() {
       ctx.fillStyle = '#0ff';
-      ctx.fillRect(state.x * cellSize, state.y * cellSize, cellSize, cellSize);
+      ctx.fillRect(gameData.state.x * cellSize, gameData.state.y * cellSize, cellSize, cellSize);
     }
     
     function updateLogs() {
-      const recent = opHistory.slice(-4).reverse();
-      logs.innerHTML = recent.map(op => 
-        `<div class="log-entry">${op.name}(dx: ${op.arguments.dx}, dy: ${op.arguments.dy})</div>`
-      ).join('');
+      logs.innerHTML = gameData.recentOps.slice().reverse().map(op => {
+        const time = new Date(op.timestamp).toLocaleTimeString();
+        const author = op.author ? ` by ${op.author}` : '';
+        return `<div class="log-entry">[${time}] ${op.name}(dx: ${op.arguments.dx}, dy: ${op.arguments.dy})${author}</div>`;
+      }).join('');
+    }
+    
+    function updateStatus() {
+      const status = document.getElementById('status') || createStatusElement();
+      status.innerHTML = `
+        <div>Position: (${gameData.state.x}, ${gameData.state.y})</div>
+        <div>Total Operations: ${gameData.history.length}</div>
+        <div>WebSocket: Connected</div>
+      `;
+    }
+    
+    function createStatusElement() {
+      const status = document.createElement('div');
+      status.id = 'status';
+      status.style.cssText = 'color: #0ff; font-size: 12px; margin-top: 10px;';
+      document.body.appendChild(status);
+      return status;
     }
     
     function render() {
@@ -86,12 +108,33 @@
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log('Received:', data.type, data);
       
-      if (data.type === 'state') {
-        state = data.state;
-      } else if (data.type === 'op') {
-        opHistory.push(data.op);
+      if (data.type === 'full_state') {
+        // 初期状態または完全な状態の受信
+        gameData = data.data;
         updateLogs();
+        updateStatus();
+        console.log('Full state received:', gameData);
+      } else if (data.type === 'game_update') {
+        // ゲーム状態の更新
+        gameData = data.data;
+        updateLogs();
+        updateStatus();
+        console.log('Game updated:', data.latestOp);
+      }
+    };
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      updateStatus();
+    };
+    
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+      const status = document.getElementById('status');
+      if (status) {
+        status.innerHTML = status.innerHTML.replace('Connected', 'Disconnected');
       }
     };
     

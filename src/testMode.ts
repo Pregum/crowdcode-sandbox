@@ -38,7 +38,7 @@ export async function startTestMode() {
             broadcastOp({
               name: 'move_block',
               arguments: toolCall.args as { dx: number; dy: number },
-            });
+            }, author);
             toolCallsFound = true;
           }
         }
@@ -55,7 +55,7 @@ export async function startTestMode() {
                 broadcastOp({
                   name: 'move_block',
                   arguments: toolCall.args as { dx: number; dy: number },
-                });
+                }, author);
                 toolCallsFound = true;
               }
             }
@@ -112,10 +112,18 @@ export async function startTestMode() {
     });
   });
 
-  const server = app.listen(3001, () => {
-    console.log('✅ HTTP テスト API: http://localhost:3001');
+  app.get('/game-state', (req, res) => {
+    // サーバーの状態を取得する関数をインポートする必要があります
+    res.json({ 
+      message: 'ゲーム状態 API',
+      note: 'WebSocket経由で状態を取得してください'
+    });
+  });
+
+  const server = app.listen(3002, () => {
+    console.log('✅ HTTP テスト API: http://localhost:3002');
     console.log('📝 使用例:');
-    console.log('   curl -X POST http://localhost:3001/test-message \\');
+    console.log('   curl -X POST http://localhost:3002/test-message \\');
     console.log('        -H "Content-Type: application/json" \\');
     console.log('        -d \'{"message":"右に動かして","author":"テスト"}\'');
     console.log('🎮 またはコンソールから直接入力も可能です\n');
