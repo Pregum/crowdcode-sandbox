@@ -108,23 +108,61 @@ export const parseShogiMove = createTool({
         return await dropShogiPiece.execute({ piece, x, y });
       }
 
-      // 駒を移動するパターン（例：7六歩、５五角、3三銀成、同歩）
-      const moveMatch = moveText.match(/([1-9１-９同])([一二三四五六七八九1-9])([歩香桂銀金角飛玉王と杏圭全馬龍])(成|不成)?/);
+      // 駒を移動するパターン（例：7六歩、５五角、3三銀成、同歩、76歩）
+      const moveMatch = moveText.match(/([1-9１-９同])([一二三四五六七八九1-9１-９])([歩香桂銀金角飛玉王と杏圭全馬龍])(成|不成)?/);
       if (moveMatch) {
+        console.log(`🎯 移動パターンマッチ: ${JSON.stringify(moveMatch)}`);
+        
         const toX = moveMatch[1] === '同' ? getLastMovePosition().x : convertToNumber(moveMatch[1]);
         const toY = moveMatch[1] === '同' ? getLastMovePosition().y : convertToYNumber(moveMatch[2]);
         const pieceChar = moveMatch[3];
         const promote = moveMatch[4] === '成';
         
-        // 移動元を特定（簡易版：指定された駒で移動可能な位置を探す）
+        console.log(`🎯 移動先: (${toX},${toY}), 駒: ${pieceChar}, 成り: ${promote}`);
+        
+        // 移動元を特定
         const from = findMovablePosition(toX, toY, pieceChar);
         
         if (!from) {
           return {
             success: false,
-            message: `${pieceChar}を(${toX},${toY})に移動できる駒が見つかりません`,
+            message: `${pieceChar}を(${toX},${toY})に移動できる駒が見つかりません。盤面を確認してください。`,
           };
         }
+
+        console.log(`🎯 移動実行: (${from.x},${from.y}) → (${toX},${toY})`);
+
+        const { moveShogiPiece } = await import('./moveShogiPiece.js');
+        return await moveShogiPiece.execute({ 
+          fromX: from.x, 
+          fromY: from.y, 
+          toX, 
+          toY, 
+          promote 
+        });
+      }
+
+      // 簡潔な記法パターン（例：76歩、55角、33銀）
+      const shortMoveMatch = moveText.match(/^([1-9１-９])([1-9１-９])([歩香桂銀金角飛玉王と杏圭全馬龍])(成|不成)?$/);
+      if (shortMoveMatch) {
+        const toX = convertToNumber(shortMoveMatch[1]);
+        const toY = convertToNumber(shortMoveMatch[2]); // 数字の場合はそのまま変換
+        const pieceChar = shortMoveMatch[3];
+        const promote = shortMoveMatch[4] === '成';
+        
+        console.log(`🎯 簡潔記法マッチ: (${toX},${toY}) ${pieceChar}`);
+        
+        // 移動元を特定
+        const from = findMovablePosition(toX, toY, pieceChar);
+        
+        if (!from) {
+          return {
+            success: false,
+            message: `${pieceChar}を(${toX},${toY})に移動できる駒が見つかりません。盤面を確認してください。`,
+          };
+        }
+
+        console.log(`🎯 簡潔記法移動実行: (${from.x},${from.y}) → (${toX},${toY})`);
 
         const { moveShogiPiece } = await import('./moveShogiPiece.js');
         return await moveShogiPiece.execute({ 
@@ -144,6 +182,8 @@ export const parseShogiMove = createTool({
         const toX = convertToNumber(fullMoveMatch[4]);
         const toY = convertToYNumber(fullMoveMatch[5]);
         const promote = fullMoveMatch[6] === '成';
+
+        console.log(`🎯 完全記法移動実行: (${fromX},${fromY}) → (${toX},${toY})`);
 
         const { moveShogiPiece } = await import('./moveShogiPiece.js');
         return await moveShogiPiece.execute({ fromX, fromY, toX, toY, promote });
@@ -212,24 +252,33 @@ function getLastMovePosition(): { x: number, y: number } {
   return lastMove.to;
 }
 
-// 指定された駒で目的地に移動可能な位置を探す（簡易版）
+// 指定された駒で目的地に移動可能な位置を探す（改良版）
 function findMovablePosition(toX: number, toY: number, pieceChar: string): { x: number, y: number } | null {
   const state = global.gameData?.shogi;
-  if (!state || !state.board) return null;
+  if (!state || !state.board) {
+    console.log(`❌ 盤面データが見つかりません`);
+    return null;
+  }
 
   const shogiGame = global.shogiGame;
-  if (!shogiGame) return null;
+  if (!shogiGame) {
+    console.log(`❌ shogiGameが見つかりません`);
+    return null;
+  }
 
-  // 駒の種類を特定
+  console.log(`🔍 駒を探索中: "${pieceChar}" → (${toX},${toY})`);
+
+  // 駒の種類を特定（より包括的なマッピング）
   const pieceTypeMap: { [key: string]: number[] } = {
-    '歩': [1, 9],
-    '香': [2, 10],
-    '桂': [3, 11],
-    '銀': [4, 12],
-    '金': [5],
-    '角': [6, 13],
-    '飛': [7, 14],
-    '玉': [8], '王': [8],
+    '歩': [1, 9],     // 歩、と
+    '香': [2, 10],    // 香、杏
+    '桂': [3, 11],    // 桂、圭
+    '銀': [4, 12],    // 銀、全
+    '金': [5],        // 金
+    '角': [6, 13],    // 角、馬
+    '飛': [7, 14],    // 飛、龍
+    '玉': [8], '王': [8], // 玉・王
+    // 成り駒
     'と': [9],
     '杏': [10],
     '圭': [11],
@@ -239,25 +288,56 @@ function findMovablePosition(toX: number, toY: number, pieceChar: string): { x: 
   };
 
   const targetTypes = pieceTypeMap[pieceChar];
-  if (!targetTypes) return null;
+  if (!targetTypes) {
+    console.log(`❌ 不明な駒種: "${pieceChar}"`);
+    return null;
+  }
 
   const currentPlayer = state.currentPlayer;
+  console.log(`🎮 現在のプレイヤー: ${currentPlayer}`);
+
+  let foundPieces: Array<{pos: {x: number, y: number}, piece: any}> = [];
 
   // 盤面を走査して、指定された駒を探す
   for (let y = 0; y < 9; y++) {
     for (let x = 0; x < 9; x++) {
       const piece = state.board[y][x];
       if (piece && piece.owner === currentPlayer && targetTypes.includes(piece.type)) {
-        // この駒が目的地に移動可能かチェック
-        const from = { x: 9 - x, y: y + 1 }; // 配列インデックスを将棋座標に変換
-        const validMoves = shogiGame.getValidMovesForPiece(from);
-        
-        if (validMoves.some(move => move.x === toX && move.y === toY)) {
-          return from;
-        }
+        const shogiPos = { x: 9 - x, y: y + 1 }; // 配列インデックスを将棋座標に変換
+        foundPieces.push({pos: shogiPos, piece});
+        console.log(`📍 候補の駒発見: ${getPieceTypeName(piece.type)} at (${shogiPos.x},${shogiPos.y})`);
       }
     }
   }
 
+  console.log(`🔍 見つかった候補: ${foundPieces.length}個`);
+
+  // 各候補駒について移動可能性をチェック
+  for (const candidate of foundPieces) {
+    console.log(`🧮 (${candidate.pos.x},${candidate.pos.y})から(${toX},${toY})への移動可能性をチェック`);
+    
+    try {
+      const validMoves = shogiGame.getValidMovesForPiece(candidate.pos);
+      console.log(`✅ 有効移動数: ${validMoves ? validMoves.length : 0}`);
+      
+      if (validMoves && validMoves.some(move => move.x === toX && move.y === toY)) {
+        console.log(`🎯 移動可能な駒を発見: (${candidate.pos.x},${candidate.pos.y}) → (${toX},${toY})`);
+        return candidate.pos;
+      }
+    } catch (error) {
+      console.log(`⚠️ 移動チェックエラー: ${error.message}`);
+    }
+  }
+
+  console.log(`❌ ${pieceChar}を(${toX},${toY})に移動できる駒が見つかりませんでした`);
   return null;
+}
+
+// 駒タイプ番号から名前を取得
+function getPieceTypeName(type: number): string {
+  const typeNames: { [key: number]: string } = {
+    1: '歩', 2: '香', 3: '桂', 4: '銀', 5: '金', 6: '角', 7: '飛', 8: '玉',
+    9: 'と', 10: '杏', 11: '圭', 12: '全', 13: '馬', 14: '龍'
+  };
+  return typeNames[type] || `不明(${type})`;
 }
