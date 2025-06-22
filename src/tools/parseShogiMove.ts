@@ -97,12 +97,27 @@ export const parseShogiMove = createTool({
         });
       }
 
-      // 持ち駒を打つパターン（例：3三銀打ち、５五角打）
-      const dropMatch = moveText.match(/([1-9１-９])([一二三四五六七八九1-9])([歩香桂銀金角飛])打/);
+      // 持ち駒を打つパターン（例：23歩打ち、3三銀打ち、５五角打）
+      const dropMatch = moveText.match(/([1-9１-９])([一二三四五六七八九1-9１-９])([歩香桂銀金角飛])(打ち?|打つ)/);
       if (dropMatch) {
         const x = convertToNumber(dropMatch[1]);
         const y = convertToYNumber(dropMatch[2]);
         const piece = convertToPieceType(dropMatch[3]);
+        
+        console.log(`🎯 駒打ちパターンマッチ: (${x},${y}) ${piece}`);
+        
+        const { dropShogiPiece } = await import('./dropShogiPiece.js');
+        return await dropShogiPiece.execute({ piece, x, y });
+      }
+
+      // 簡潔な駒打ちパターン（例：23歩打、55角打）
+      const shortDropMatch = moveText.match(/^([1-9１-９])([1-9１-９])([歩香桂銀金角飛])打$/);
+      if (shortDropMatch) {
+        const x = convertToNumber(shortDropMatch[1]);
+        const y = convertToNumber(shortDropMatch[2]); // 数字はそのまま変換
+        const piece = convertToPieceType(shortDropMatch[3]);
+        
+        console.log(`🎯 簡潔駒打ちパターンマッチ: (${x},${y}) ${piece}`);
         
         const { dropShogiPiece } = await import('./dropShogiPiece.js');
         return await dropShogiPiece.execute({ piece, x, y });

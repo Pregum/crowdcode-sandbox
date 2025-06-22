@@ -15,8 +15,20 @@ export const dropShogiPiece = createTool({
     board: z.string().optional(),
     message: z.string().optional(),
   }),
-  execute: async ({ piece, x, y }) => {
+  execute: async (params) => {
     try {
+      console.log(`🎲 持ち駒打ち開始: ${JSON.stringify(params)}`);
+      
+      let { piece, x, y } = params;
+      
+      // contextオブジェクト内のパラメータを取得
+      if (params.context) {
+        piece = params.context.piece ?? piece;
+        x = params.context.x ?? x;
+        y = params.context.y ?? y;
+      }
+      
+      console.log(`✅ 使用パラメータ: ${piece} → (${x},${y})`);
       if (global.gameData?.gameMode !== 'shogi') {
         return {
           success: false,
