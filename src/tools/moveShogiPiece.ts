@@ -22,6 +22,15 @@ export const moveShogiPiece = createTool({
       
       let { fromX, fromY, toX, toY, promote } = params;
       
+      // contextオブジェクト内のパラメータを取得
+      if (params.context) {
+        fromX = params.context.fromX ?? fromX;
+        fromY = params.context.fromY ?? fromY;
+        toX = params.context.toX ?? toX;
+        toY = params.context.toY ?? toY;
+        promote = params.context.promote ?? promote;
+      }
+      
       // undefinedパラメータのデフォルト値設定
       if (fromX == null) fromX = 7;
       if (fromY == null) fromY = 7;

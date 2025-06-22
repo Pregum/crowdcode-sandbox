@@ -18,6 +18,11 @@ export const parseShogiMove = createTool({
       
       let { move } = params;
       
+      // contextオブジェクト内のmoveを取得
+      if (params.context && params.context.move) {
+        move = params.context.move;
+      }
+      
       // undefinedの場合はデフォルト値を設定
       if (!move) {
         console.log(`⚠️ moveがundefinedのため、デフォルト値'7六歩'を使用`);

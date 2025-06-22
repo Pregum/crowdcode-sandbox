@@ -19,6 +19,11 @@ export const switchGameMode = createTool({
       
       let { mode } = params;
       
+      // contextオブジェクト内のmodeを取得
+      if (params.context && params.context.mode) {
+        mode = params.context.mode;
+      }
+      
       // undefinedの場合はデフォルト値を設定
       if (!mode) {
         console.log(`⚠️ modeがundefinedのため、デフォルト値'shogi'を使用`);
