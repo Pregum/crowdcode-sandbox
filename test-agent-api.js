@@ -3,7 +3,7 @@ import { Agent } from '@mastra/core/agent';
 const agent = new Agent({
   name: 'test-agent', 
   instructions: 'You are a test agent',
-  model: { provider: 'GOOGLE', name: 'gemini-2.0-flash-exp', toolChoice: 'auto' },
+  model: { provider: 'GOOGLE', name: 'gemini-2.5-flash', toolChoice: 'auto' },
   tools: []
 });
 

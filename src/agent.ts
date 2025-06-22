@@ -60,7 +60,7 @@ export const gameAgent = new Agent({
 
 ユーザーが「将棋やろう」「将棋をしたい」「将棋に切り替え」等と言った場合は、必ずswitchGameModeツールを呼び出してください。
 移動コマンドを受け取ったら適切なツールを呼び出してください。`,
-  model: google('gemini-2.0-flash-exp', {
+  model: google('gemini-2.5-flash', {
     apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   }),
   tools: { 

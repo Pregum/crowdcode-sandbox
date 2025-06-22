@@ -22,7 +22,7 @@ export const routerAgent = new Agent({
 - 曖昧な場合は文脈から最も適切なものを選択
 
 必ずrouteToAgentツールを使ってエージェントを選択してください。`,
-  model: google('gemini-2.0-flash-exp', {
+  model: google('gemini-2.5-flash', {
     apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   }),
   tools: { routeToAgent },

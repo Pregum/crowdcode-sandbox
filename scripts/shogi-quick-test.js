@@ -13,9 +13,9 @@ const quickTests = [
   { message: '33角', description: '駒移動テスト（相手の角）' },
   { message: '88銀', description: '駒移動テスト（銀）' },
   { message: '22銀', description: '駒移動テスト（相手の銀）' },
-  { message: '24歩', description: '駒の取り合いテスト' },
-  { message: '同歩', description: '同じ場所への移動テスト' },
-  { message: '23歩打', description: '駒打ちテスト' },
+  { message: '33角成', description: '駒の取り合いテスト' },
+  { message: '同銀', description: '同じ場所への移動テスト' },
+  { message: '77銀', description: '駒移動テスト' },
   { message: 'まった', description: 'まった機能テスト' },
   { message: '盤面を見せて', description: '盤面表示テスト' }
 ];

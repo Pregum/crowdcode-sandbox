@@ -26,7 +26,7 @@ export const filesystemAgent = new Agent({
 - "oldファイルをnewにリネームして"
 - "tempディレクトリを作成して"
 - "不要なファイルを削除して"`,
-  model: google('gemini-2.0-flash-exp', {
+  model: google('gemini-2.5-flash', {
     apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   }),
   tools: filesystemTools,
