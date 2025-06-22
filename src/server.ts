@@ -1,8 +1,10 @@
 import { WebSocketServer, WebSocket as WSWebSocket } from 'ws';
 import { startChatBridge } from './bridge.js';
 import { SokobanGame, SokobanState } from './game/sokoban.js';
+import { ShogiGame } from './game/shogiGame.js';
+import { ShogiState } from './game/shogi.js';
 
-const wss = new WebSocketServer({ port: 8765 });
+const wss = new WebSocketServer({ port: process.env.WS_PORT || 8765 });
 
 interface GameState {
   x: number;
@@ -19,13 +21,19 @@ interface Operation {
 interface GameData {
   state: GameState;
   sokoban: SokobanState;
+  shogi?: ShogiState;
   history: Operation[];
   recentOps: Operation[];
-  gameMode: 'simple' | 'sokoban';
+  gameMode: 'simple' | 'sokoban' | 'shogi' | 'tsumeshogi';
 }
 
-// 倉庫番ゲームのインスタンス
+// ゲームインスタンス
 const sokobanGame = new SokobanGame(1);
+let shogiGame: ShogiGame | null = null;
+
+// グローバルに公開（ツールから参照するため）
+(global as any).shogiGame = shogiGame;
+(global as any).gameData = null;
 
 let gameData: GameData = {
   state: { x: 5, y: 5 },
@@ -34,6 +42,9 @@ let gameData: GameData = {
   recentOps: [],
   gameMode: 'sokoban' // デフォルトで倉庫番モード
 };
+
+// グローバルに公開
+(global as any).gameData = gameData;
 
 const clients = new Set<WSWebSocket>();
 
@@ -61,7 +72,16 @@ export function broadcastOp(op: Omit<Operation, 'timestamp'>, author?: string) {
   let moveSuccessful = false;
 
   // ゲームモードに応じて状態を更新
-  if (gameData.gameMode === 'sokoban') {
+  if (gameData.gameMode === 'shogi' || gameData.gameMode === 'tsumeshogi') {
+    // 将棋ゲームの処理
+    if (operation.name === 'moveShogiPiece' || operation.name === 'dropShogiPiece' || operation.name === 'resignShogi') {
+      // 将棋の操作はツール側で処理されるため、ここでは成功とする
+      moveSuccessful = true;
+      if (shogiGame) {
+        gameData.shogi = shogiGame.getState();
+      }
+    }
+  } else if (gameData.gameMode === 'sokoban') {
     // 倉庫番ゲームの処理
     if (operation.name === 'movePlayer' || operation.name === 'move_block' || operation.name === 'moveBlock') {
       const dx = operation.arguments.dx ?? 0;
@@ -139,10 +159,16 @@ function broadcastGameState() {
 }
 
 // ゲームモード切り替え関数を追加
-export function switchGameMode(mode: 'simple' | 'sokoban') {
+export function switchGameMode(mode: 'simple' | 'sokoban' | 'shogi' | 'tsumeshogi') {
   gameData.gameMode = mode;
   if (mode === 'sokoban') {
     gameData.sokoban = sokobanGame.getState();
+  } else if (mode === 'shogi' || mode === 'tsumeshogi') {
+    if (!shogiGame) {
+      shogiGame = new ShogiGame();
+      (global as any).shogiGame = shogiGame;
+    }
+    gameData.shogi = shogiGame.getState();
   }
   broadcastGameState();
   console.log(`🔄 ゲームモードを${mode}に切り替えました`);

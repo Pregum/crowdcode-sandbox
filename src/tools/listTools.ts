@@ -19,18 +19,14 @@ export const listTools = createTool({
     const allTools = [
       // ゲーム関連ツール
       {
+        name: 'switchGameMode',
+        description: 'ゲームモードを切り替えます（倉庫番/将棋/詰将棋）。',
+        category: 'game'
+      },
+      // 倉庫番関連
+      {
         name: 'movePlayer',
         description: '倉庫番ゲームのプレイヤーを移動させます。箱を押すこともできます。',
-        category: 'game'
-      },
-      {
-        name: 'moveBlock',
-        description: 'シンプルモードでブロックを移動させます（下位互換）。',
-        category: 'game'
-      },
-      {
-        name: 'listTools',
-        description: '利用可能なツールの一覧とその説明を表示します。',
         category: 'game'
       },
       {
@@ -46,6 +42,38 @@ export const listTools = createTool({
       {
         name: 'moveToBox',
         description: '指定した箱の位置まで自動で回り込みます。',
+        category: 'game'
+      },
+      // 将棋関連
+      {
+        name: 'showShogiBoard',
+        description: '現在の将棋盤の状態を表示します。',
+        category: 'game'
+      },
+      {
+        name: 'moveShogiPiece',
+        description: '将棋の駒を移動します。座標は1-9で指定します。',
+        category: 'game'
+      },
+      {
+        name: 'dropShogiPiece',
+        description: '持ち駒を盤上に打ちます。',
+        category: 'game'
+      },
+      {
+        name: 'resignShogi',
+        description: '将棋で投了します。',
+        category: 'game'
+      },
+      // その他
+      {
+        name: 'moveBlock',
+        description: 'シンプルモードでブロックを移動させます（下位互換）。',
+        category: 'game'
+      },
+      {
+        name: 'listTools',
+        description: '利用可能なツールの一覧とその説明を表示します。',
         category: 'game'
       },
       // ファイルシステム関連ツール
