@@ -206,6 +206,37 @@ export class SokobanGame {
     return false;
   }
 
+  public jumpToPosition(x: number, y: number, validatePosition: boolean = true): boolean {
+    // 境界チェック
+    if (x < 0 || x >= this.state.width || y < 0 || y >= this.state.height) {
+      return false;
+    }
+
+    // 位置検証が有効な場合のチェック
+    if (validatePosition) {
+      // 壁にはジャンプできない
+      if (this.isWall(x, y)) {
+        return false;
+      }
+      
+      // 箱がある場所にはジャンプできない
+      if (this.getBoxAt(x, y) !== -1) {
+        return false;
+      }
+    }
+
+    // プレイヤーの位置を直接更新（ジャンプ）
+    this.state.player = { x, y };
+    
+    // 移動回数は増やさない（テレポートなので）
+    // this.state.moves++;
+
+    // クリア判定
+    this.checkCompletion();
+
+    return true;
+  }
+
   public getCurrentMap(): CellType[][] {
     // 現在の状態を2Dマップとして返す
     const map: CellType[][] = Array(this.state.height).fill(null).map(() => 

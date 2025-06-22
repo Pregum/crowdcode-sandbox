@@ -24,8 +24,10 @@ cp .env.example .env
 
 #### VIDEO_ID の取得方法
 YouTube Liveの動画URLから取得します。
-- 例: `https://www.youtube.com/watch?v=ABC123DEF456` の場合
-- `VIDEO_ID=ABC123DEF456`
+- 例1: `https://www.youtube.com/watch?v=ABC123DEF456` の場合
+  - `VIDEO_ID=ABC123DEF456`
+- 例2: `https://www.youtube.com/live/7WbWgUqLN68` の場合
+  - `VIDEO_ID=7WbWgUqLN68`
 
 #### GOOGLE_API_KEY の取得方法
 1. [Google AI Studio](https://aistudio.google.com/app/apikey) にアクセス

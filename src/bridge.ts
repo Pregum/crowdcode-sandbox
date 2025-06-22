@@ -76,22 +76,43 @@ export async function startChatBridge() {
   }
 
   console.log('📺 YouTube Liveモードで起動中...');
-  const listener = new ChatListener(process.env.VIDEO_ID!);
+  
+  try {
+    const listener = new ChatListener(process.env.VIDEO_ID!);
 
-  listener.onMessage(async (message) => {
-    console.log(`[${message.author}]: ${message.text}`);
-    
-    try {
-      const result = await routeMessage(message.text, message.author);
-      console.log(`✅ ${result.routedTo}エージェントで処理完了`);
+    listener.onMessage(async (message) => {
+      console.log(`[${message.author}]: ${message.text}`);
       
-      // ツール実行結果を処理
-      await processAgentResponse(result.response, message.author);
-    } catch (error) {
-      console.error('Error processing chat:', error);
-    }
-  });
+      try {
+        const result = await routeMessage(message.text, message.author);
+        console.log(`✅ ${result.routedTo}エージェントで処理完了`);
+        
+        // ツール実行結果を処理
+        await processAgentResponse(result.response, message.author);
+      } catch (error) {
+        console.error('Error processing chat:', error);
+      }
+    });
 
-  listener.start();
-  console.log('YouTube chat listener started');
+    // onErrorメソッドが利用可能な場合のみ設定
+    if (typeof listener.onError === 'function') {
+      listener.onError((error: any) => {
+        console.error('YouTube Chat API Error:', error.message);
+        
+        // APIエラーが継続する場合は警告を表示
+        if (error.message && error.message.includes('Failed to parse chat messages')) {
+          console.warn('⚠️ YouTube Chat APIでパースエラーが発生しています。');
+          console.warn('   原因: YouTubeの構造変更またはライブチャット非対応動画');
+          console.warn('   対策: TEST_MODE=trueでテストモードを使用してください');
+        }
+      });
+    }
+
+    listener.start();
+    console.log('YouTube chat listener started');
+  } catch (error) {
+    console.error('Failed to start YouTube chat listener:', error);
+    console.log('🔄 テストモードで代替実行を開始します...');
+    await startTestMode();
+  }
 }

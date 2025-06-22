@@ -11,7 +11,7 @@ interface GameState {
 
 interface Operation {
   name: string;
-  arguments: { dx: number; dy: number };
+  arguments: { dx?: number; dy?: number; x?: number; y?: number; [key: string]: any };
   timestamp: number;
   author?: string;
 }
@@ -64,7 +64,9 @@ export function broadcastOp(op: Omit<Operation, 'timestamp'>, author?: string) {
   if (gameData.gameMode === 'sokoban') {
     // 倉庫番ゲームの処理
     if (operation.name === 'movePlayer' || operation.name === 'move_block' || operation.name === 'moveBlock') {
-      moveSuccessful = sokobanGame.movePlayer(operation.arguments.dx, operation.arguments.dy);
+      const dx = operation.arguments.dx ?? 0;
+      const dy = operation.arguments.dy ?? 0;
+      moveSuccessful = sokobanGame.movePlayer(dx, dy);
       if (moveSuccessful) {
         gameData.sokoban = sokobanGame.getState();
         console.log(`🎮 倉庫番: プレイヤー移動 (${gameData.sokoban.player.x}, ${gameData.sokoban.player.y}), 移動回数: ${gameData.sokoban.moves}`);
@@ -85,6 +87,17 @@ export function broadcastOp(op: Omit<Operation, 'timestamp'>, author?: string) {
         }
       } else {
         console.log('❌ 移動できませんでした');
+      }
+    } else if (operation.name === 'jumpToPosition') {
+      const x = operation.arguments.x ?? 0;
+      const y = operation.arguments.y ?? 0;
+      const validatePosition = operation.arguments.validatePosition ?? true;
+      moveSuccessful = sokobanGame.jumpToPosition(x, y, validatePosition);
+      if (moveSuccessful) {
+        gameData.sokoban = sokobanGame.getState();
+        console.log(`✨ 倉庫番: プレイヤーがジャンプ (${gameData.sokoban.player.x}, ${gameData.sokoban.player.y})`);
+      } else {
+        console.log('❌ ジャンプできませんでした');
       }
     }
   } else {

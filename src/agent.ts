@@ -6,6 +6,7 @@ import { listTools } from './tools/listTools.js';
 import { resetLevel } from './tools/resetLevel.js';
 import { generateStage } from './tools/generateStage.js';
 import { moveToBox } from './tools/moveToBox.js';
+import { jumpToPosition } from './tools/jumpToPosition.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -26,6 +27,7 @@ export const gameAgent = new Agent({
 3. **resetLevel** - 現在のレベルを初期状態にリセット
 4. **generateStage** - 新しいステージを自動生成
 5. **moveToBox** - 指定した箱の位置まで自動で回り込み
+6. **jumpToPosition** - 指定した座標に直接ジャンプ（テレポート）
 
 方向の対応：
 - 右/みぎ = positive dx (dx: 1, dy: 0)
@@ -39,6 +41,7 @@ export const gameAgent = new Agent({
 - "レベルをリセット" → resetLevel
 - "新しいステージを作って" → generateStage
 - "1番目の箱に回り込んで" → moveToBox with boxIndex: 0
+- "座標(5,3)にジャンプして" → jumpToPosition with x: 5, y: 3
 
 移動コマンドを受け取ったら適切なツールを呼び出してください。`,
   model: google('gemini-2.0-flash-exp', {
@@ -50,6 +53,7 @@ export const gameAgent = new Agent({
     listTools,
     resetLevel,
     generateStage,
-    moveToBox
+    moveToBox,
+    jumpToPosition
   },
 });
