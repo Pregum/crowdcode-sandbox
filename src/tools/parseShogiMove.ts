@@ -54,6 +54,20 @@ export const parseShogiMove = createTool({
         return await resignShogi.execute({});
       }
 
+      // まった（undo）パターン
+      if (moveText.match(/まった|待った|戻して|戻る|undo|取り消し|やり直し/)) {
+        const { undoShogiMove } = await import('./undoShogiMove.js');
+        
+        // 手数を抽出（例：「2手まった」「3手戻して」）
+        const stepsMatch = moveText.match(/([0-9０-９一二三四五六七八九])手/);
+        let steps = 1;
+        if (stepsMatch) {
+          steps = convertToNumber(stepsMatch[1]);
+        }
+        
+        return await undoShogiMove.execute({ steps });
+      }
+
       // 「同」関連のパターン（例：同じく、同、同歩、同角）
       const sameMatch = moveText.match(/^(同|同じく|同じ|同様に?)([歩香桂銀金角飛玉王と杏圭全馬龍])?(成|不成)?$/);
       if (sameMatch) {
