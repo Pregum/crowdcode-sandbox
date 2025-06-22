@@ -5,9 +5,9 @@ export const generateStage = createTool({
   id: 'generateStage',
   description: '新しい倉庫番ステージを自動生成します',
   inputSchema: z.object({
-    width: z.number().min(5).max(15).optional().default(8).describe('ステージの幅（5-15）'),
-    height: z.number().min(5).max(12).optional().default(6).describe('ステージの高さ（5-12）'),
-    boxCount: z.number().min(1).max(5).optional().default(2).describe('箱の数（1-5）'),
+    width: z.number().min(5).max(20).optional().describe('ステージの幅（5-20）'),
+    height: z.number().min(5).max(20).optional().describe('ステージの高さ（5-20）'),
+    boxCount: z.number().min(1).max(10).optional().describe('箱の数（1-10）'),
     difficulty: z.enum(['easy', 'medium', 'hard']).optional().default('medium').describe('難易度'),
   }),
   outputSchema: z.object({
@@ -22,11 +22,23 @@ export const generateStage = createTool({
     message: z.string().optional(),
   }),
   execute: async ({ width, height, boxCount, difficulty }) => {
+    // パラメータが渡されない場合は10x10から20x20の間でランダムに生成
+    if (!width || !height) {
+      width = Math.floor(Math.random() * 11) + 10; // 10-20
+      height = Math.floor(Math.random() * 11) + 10; // 10-20
+    }
+    
+    // 箱の数もランダムに設定（ステージサイズに応じて調整）
+    if (!boxCount) {
+      const maxBoxes = Math.min(Math.floor((width * height) / 20), 8);
+      boxCount = Math.floor(Math.random() * (maxBoxes - 2)) + 3; // 3〜maxBoxes個
+    }
+    
     // 簡単なランダムステージ生成アルゴリズム
     console.log(`🏗️ ステージ生成開始: ${width}x${height}, 箱${boxCount}個, 難易度${difficulty}`);
     
     // デバッグ用のパラメータチェック
-    if (!width || !height || width < 5 || height < 5 || width > 15 || height > 12) {
+    if (width < 5 || height < 5 || width > 20 || height > 20) {
       console.error('❌ 無効なステージサイズ:', { width, height });
       return {
         success: false,
