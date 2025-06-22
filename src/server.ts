@@ -31,10 +31,6 @@ interface GameData {
 const sokobanGame = new SokobanGame(1);
 let shogiGame: ShogiGame | null = null;
 
-// グローバルに公開（ツールから参照するため）
-(global as any).shogiGame = shogiGame;
-(global as any).gameData = null;
-
 let gameData: GameData = {
   state: { x: 5, y: 5 },
   sokoban: sokobanGame.getState(),
@@ -43,7 +39,8 @@ let gameData: GameData = {
   gameMode: 'sokoban' // デフォルトで倉庫番モード
 };
 
-// グローバルに公開
+// グローバルに公開（ツールから参照するため）
+(global as any).shogiGame = shogiGame;
 (global as any).gameData = gameData;
 
 const clients = new Set<WSWebSocket>();
@@ -160,18 +157,28 @@ function broadcastGameState() {
 
 // ゲームモード切り替え関数を追加
 export function switchGameMode(mode: 'simple' | 'sokoban' | 'shogi' | 'tsumeshogi') {
+  console.log(`🔄 サーバー側ゲームモード切り替え開始: ${gameData.gameMode} → ${mode}`);
+  
   gameData.gameMode = mode;
+  
   if (mode === 'sokoban') {
     gameData.sokoban = sokobanGame.getState();
+    console.log(`📦 倉庫番ゲーム状態を設定`);
   } else if (mode === 'shogi' || mode === 'tsumeshogi') {
     if (!shogiGame) {
+      console.log(`🆕 新しい将棋ゲームを作成`);
       shogiGame = new ShogiGame();
       (global as any).shogiGame = shogiGame;
+    } else {
+      console.log(`🔄 既存の将棋ゲームをリセット`);
+      shogiGame.reset();
     }
     gameData.shogi = shogiGame.getState();
+    console.log(`♟️ 将棋ゲーム状態を設定:`, gameData.shogi ? '成功' : '失敗');
   }
+  
   broadcastGameState();
-  console.log(`🔄 ゲームモードを${mode}に切り替えました`);
+  console.log(`✅ ゲームモード切り替え完了: ${mode}`);
 }
 
 // レベルリセット関数を追加

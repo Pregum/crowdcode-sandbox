@@ -14,23 +14,12 @@ export const switchGameMode = createTool({
   }),
   execute: async ({ mode }) => {
     try {
+      console.log(`🔄 ゲームモード切り替え開始: ${mode}`);
+      
       const { switchGameMode: serverSwitchGameMode } = await import('../server.js');
       
-      // 将棋モードの場合は初期化が必要
-      if (mode === 'shogi' || mode === 'tsumeshogi') {
-        if (!global.shogiGame) {
-          const { ShogiGame } = await import('../game/shogiGame.js');
-          global.shogiGame = new ShogiGame();
-        } else {
-          // 既存のゲームがある場合はリセット
-          global.shogiGame.reset();
-        }
-        
-        // グローバル状態に将棋の状態を設定
-        global.gameData.shogi = global.shogiGame.getState();
-      }
-      
       // サーバー側のゲームモードを切り替え
+      console.log(`📡 サーバー側のゲームモード切り替えを実行`);
       serverSwitchGameMode(mode);
       
       const modeNames = {
@@ -38,6 +27,8 @@ export const switchGameMode = createTool({
         'shogi': '通常将棋',
         'tsumeshogi': '詰将棋',
       };
+      
+      console.log(`✅ ゲームモード切り替え完了: ${modeNames[mode]}`);
       
       return {
         success: true,

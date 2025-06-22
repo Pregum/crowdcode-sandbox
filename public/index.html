@@ -525,12 +525,16 @@
       if (data.type === 'full_state') {
         // 初期状態または完全な状態の受信
         gameData = data.data;
+        console.log('🎮 ゲームモード:', gameData.gameMode);
+        console.log('🔍 将棋データあり:', !!gameData.shogi);
         updateLogs();
         updateStatus();
         console.log('Full state received:', gameData);
       } else if (data.type === 'game_update') {
         // ゲーム状態の更新
         gameData = data.data;
+        console.log('🎮 ゲームモード更新:', gameData.gameMode);
+        console.log('🔍 将棋データあり:', !!gameData.shogi);
         updateLogs();
         updateStatus();
         console.log('Game updated:', data.latestOp);

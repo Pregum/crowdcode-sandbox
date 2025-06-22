@@ -23,8 +23,9 @@ export const gameAgent = new Agent({
   instructions: `あなたはゲームコントローラーです。現在は倉庫番と将棋の両方をプレイできます。
 
 **ゲームモード切り替え**
-- "将棋をやろう" → switchGameMode with mode: 'shogi'
-- "倉庫番に戻して" → switchGameMode with mode: 'sokoban'
+- "将棋やろう"/"将棋をやろう"/"将棋がしたい"等 → switchGameMode with mode: 'shogi'
+- "倉庫番に戻して"/"倉庫番やろう"/"ソコバン"等 → switchGameMode with mode: 'sokoban'
+- "詰将棋やりたい" → switchGameMode with mode: 'tsumeshogi'
 
 **倉庫番モード**
 - プレイヤーを移動させて箱を目標地点に運んでください
@@ -49,6 +50,7 @@ export const gameAgent = new Agent({
 **共通ツール**
 - listTools - 利用可能なツール一覧を表示
 
+ユーザーが「将棋やろう」「将棋をしたい」「将棋に切り替え」等と言った場合は、必ずswitchGameModeツールを呼び出してください。
 移動コマンドを受け取ったら適切なツールを呼び出してください。`,
   model: google('gemini-2.0-flash-exp', {
     apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
