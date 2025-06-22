@@ -3,27 +3,38 @@ import { z } from 'zod';
 
 export const switchGameMode = createTool({
   id: 'switchGameMode',
-  description: 'ゲームモードを切り替えます（倉庫番/将棋/詰将棋）',
+  description: 'ゲームモードを切り替えます。必ずmodeパラメータを指定してください（sokoban/shogi/tsumeshogi）',
   inputSchema: z.object({
-    mode: z.enum(['sokoban', 'shogi', 'tsumeshogi']).default('shogi').describe('切り替えるゲームモード'),
+    mode: z.enum(['sokoban', 'shogi', 'tsumeshogi']).optional().default('shogi').describe('切り替えるゲームモード（デフォルト: shogi）'),
   }),
   outputSchema: z.object({
     success: z.boolean(),
     currentMode: z.string(),
     message: z.string().optional(),
   }),
-  execute: async ({ mode }) => {
+  execute: async (params) => {
     try {
-      console.log(`🔄 ゲームモード切り替え開始: ${mode}`);
+      // パラメータをデバッグ
+      console.log(`🔄 ゲームモード切り替え開始: ${JSON.stringify(params)}`);
+      
+      let { mode } = params;
+      
+      // undefinedの場合はデフォルト値を設定
+      if (!mode) {
+        console.log(`⚠️ modeがundefinedのため、デフォルト値'shogi'を使用`);
+        mode = 'shogi';
+      }
       
       // パラメータ検証
-      if (!mode || !['sokoban', 'shogi', 'tsumeshogi'].includes(mode)) {
+      if (!['sokoban', 'shogi', 'tsumeshogi'].includes(mode)) {
         return {
           success: false,
           currentMode: '',
           message: `無効なゲームモード: ${mode}`,
         };
       }
+      
+      console.log(`✅ 使用するモード: ${mode}`);
       
       const { switchGameMode: serverSwitchGameMode } = await import('../server.js');
       
@@ -42,7 +53,7 @@ export const switchGameMode = createTool({
       return {
         success: true,
         currentMode: modeNames[mode],
-        message: `ゲームモードを${modeNames[mode]}に切り替えました`,
+        message: `✅ ゲームモードを${modeNames[mode]}に切り替えました。これで${modeNames[mode]}をプレイできます！`,
       };
     } catch (error) {
       console.error('ゲームモード切り替えエラー:', error);
