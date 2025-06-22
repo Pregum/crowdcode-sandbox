@@ -140,6 +140,39 @@ npm run test:messages
 npm run test:filesystem
 ```
 
+## 倉庫番ゲーム用ツール
+
+倉庫番ゲームで利用可能な専用ツール：
+
+### 基本操作ツール
+- **movePlayer**: プレイヤーを移動させます（箱を押すことも可能）
+- **moveBlock**: シンプルモード用のブロック移動（下位互換）
+
+### 管理・操作ツール  
+- **listTools**: 利用可能なツールの一覧とその説明を表示
+- **resetLevel**: 現在のレベルを初期状態にリセット
+- **generateStage**: 新しい倉庫番ステージを自動生成（難易度・サイズ指定可能）
+- **moveToBox**: 指定した箱の位置まで自動で回り込み
+
+### 使用例
+```bash
+# ツール一覧を確認
+curl -X POST http://localhost:3002/test-message \
+  -d '{"message":"ツール一覧を見せて","author":"プレイヤー"}'
+
+# レベルリセット
+curl -X POST http://localhost:3002/test-message \
+  -d '{"message":"レベルをリセット","author":"プレイヤー"}'
+
+# 新しいステージ生成
+curl -X POST http://localhost:3002/test-message \
+  -d '{"message":"難しいステージを生成して","author":"プレイヤー"}'
+
+# 箱への自動移動
+curl -X POST http://localhost:3002/test-message \
+  -d '{"message":"1番目の箱に回り込んで","author":"プレイヤー"}'
+```
+
 ### エージェント自動振り分け
 
 メッセージの内容に基づいて適切なエージェントに自動振り分けされます：
@@ -147,7 +180,8 @@ npm run test:filesystem
 #### ゲームコントロール
 - "右に一マス動かして" → gameエージェント
 - "左に2マス移動" → gameエージェント
-- "上に動かして" → gameエージェント
+- "レベルをリセット" → gameエージェント
+- "新しいステージを作って" → gameエージェント
 
 #### ファイルシステム操作
 - "srcディレクトリの中身を見せて" → filesystemエージェント
@@ -161,7 +195,12 @@ npm run test:filesystem
 /
 ├─ src/
 │   ├─ tools/
-│   │   ├─ moveBlock.ts      # ブロック移動ツール
+│   │   ├─ moveBlock.ts      # ブロック移動ツール（下位互換）
+│   │   ├─ movePlayer.ts     # プレイヤー移動ツール
+│   │   ├─ listTools.ts      # ツール一覧表示
+│   │   ├─ resetLevel.ts     # レベルリセット
+│   │   ├─ generateStage.ts  # ステージ自動生成
+│   │   ├─ moveToBox.ts      # 箱への自動移動
 │   │   └─ filesystem/       # ファイルシステムツール
 │   │       ├─ readFile.ts
 │   │       ├─ writeFile.ts

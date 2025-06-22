@@ -2,6 +2,10 @@ import { Agent } from '@mastra/core/agent';
 import { google } from '@ai-sdk/google';
 import { moveBlock } from './tools/moveBlock.js';
 import { movePlayer } from './tools/movePlayer.js';
+import { listTools } from './tools/listTools.js';
+import { resetLevel } from './tools/resetLevel.js';
+import { generateStage } from './tools/generateStage.js';
+import { moveToBox } from './tools/moveToBox.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,7 +20,12 @@ export const gameAgent = new Agent({
 - 箱を押して目標地点（ターゲット）に運んでください
 - 全ての箱を目標地点に置くとレベルクリア
 
-プレイヤーの移動にはmovePlayerツールを使用してください。
+利用可能なツール：
+1. **movePlayer** - プレイヤーの基本移動（箱を押すことも可能）
+2. **listTools** - 利用可能なツール一覧を表示
+3. **resetLevel** - 現在のレベルを初期状態にリセット
+4. **generateStage** - 新しいステージを自動生成
+5. **moveToBox** - 指定した箱の位置まで自動で回り込み
 
 方向の対応：
 - 右/みぎ = positive dx (dx: 1, dy: 0)
@@ -26,14 +35,21 @@ export const gameAgent = new Agent({
 
 コマンド例：
 - "右に動かして" → movePlayer with dx: 1, dy: 0
-- "左に2マス" → movePlayer with dx: -2, dy: 0
-- "上に移動" → movePlayer with dx: 0, dy: -1
-- "下に3マス動かして" → movePlayer with dx: 0, dy: 3
+- "ツール一覧を見せて" → listTools
+- "レベルをリセット" → resetLevel
+- "新しいステージを作って" → generateStage
+- "1番目の箱に回り込んで" → moveToBox with boxIndex: 0
 
-移動コマンドを受け取ったら必ずmovePlayerツールを呼び出してください。
-箱を押す場合も同じ移動コマンドで対応できます。`,
+移動コマンドを受け取ったら適切なツールを呼び出してください。`,
   model: google('gemini-2.0-flash-exp', {
     apiKey: process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   }),
-  tools: { movePlayer, moveBlock }, // 下位互換のためmoveBlockも残す
+  tools: { 
+    movePlayer, 
+    moveBlock, // 下位互換
+    listTools,
+    resetLevel,
+    generateStage,
+    moveToBox
+  },
 });
