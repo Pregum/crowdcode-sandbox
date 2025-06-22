@@ -23,9 +23,22 @@ export const generateStage = createTool({
   }),
   execute: async ({ width, height, boxCount, difficulty }) => {
     // 簡単なランダムステージ生成アルゴリズム
-    const map: number[][] = Array(height).fill(null).map(() => 
-      Array(width).fill(0)
+    console.log(`🏗️ ステージ生成開始: ${width}x${height}, 箱${boxCount}個, 難易度${difficulty}`);
+    
+    // デバッグ用のパラメータチェック
+    if (!width || !height || width < 5 || height < 5 || width > 15 || height > 12) {
+      console.error('❌ 無効なステージサイズ:', { width, height });
+      return {
+        success: false,
+        message: `無効なステージサイズ: ${width}x${height}`,
+      };
+    }
+    
+    const map: number[][] = Array.from({ length: height }, () => 
+      Array.from({ length: width }, () => 0)
     );
+    
+    console.log(`✅ マップ初期化完了: ${map.length}x${map[0]?.length || 0}`);
 
     // 外壁を作成
     for (let y = 0; y < height; y++) {
@@ -48,14 +61,40 @@ export const generateStage = createTool({
 
     // プレイヤーの初期位置（左上の空きスペース）
     let playerX = 1, playerY = 1;
-    while (map[playerY][playerX] !== 0) {
-      playerX++;
-      if (playerX >= width - 1) {
-        playerX = 1;
-        playerY++;
+    
+    // 安全な位置を探す
+    let foundSafePosition = false;
+    for (let y = 1; y < height - 1 && !foundSafePosition; y++) {
+      for (let x = 1; x < width - 1 && !foundSafePosition; x++) {
+        if (map[y] && map[y][x] === 0) {
+          playerX = x;
+          playerY = y;
+          foundSafePosition = true;
+        }
       }
     }
-    map[playerY][playerX] = 4; // プレイヤー
+    
+    // 見つからない場合はデフォルト位置（1,1）を使用し、そこを強制的に空にする
+    if (!foundSafePosition) {
+      playerX = 1;
+      playerY = 1;
+      if (map[playerY] && map[playerY].length > playerX) {
+        map[playerY][playerX] = 0; // 強制的に空にする
+      }
+    }
+    
+    console.log(`🎯 プレイヤー配置: (${playerX}, ${playerY})`);
+    
+    // 安全性チェック
+    if (map[playerY] && map[playerY].length > playerX) {
+      map[playerY][playerX] = 4; // プレイヤー
+    } else {
+      console.error('❌ プレイヤー配置失敗:', { playerX, playerY, mapHeight: map.length, mapWidth: map[0]?.length });
+      return {
+        success: false,
+        message: `プレイヤー配置失敗: (${playerX}, ${playerY})`,
+      };
+    }
 
     // 箱と目標地点を配置
     const positions: Array<{x: number, y: number}> = [];
