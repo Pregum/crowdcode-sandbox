@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Live × Gemini Flash PoC</title>
+  <title>倉庫番 × Gemini Flash PoC</title>
   <style>
     body {
       margin: 0;
@@ -28,7 +28,7 @@
   </style>
 </head>
 <body>
-  <canvas id="canvas" width="400" height="240"></canvas>
+  <canvas id="canvas" width="640" height="480"></canvas>
   <div id="logs"></div>
 
   <script>
@@ -38,18 +38,53 @@
     
     let gameData = {
       state: { x: 5, y: 5 },
+      sokoban: null,
       history: [],
-      recentOps: []
+      recentOps: [],
+      gameMode: 'sokoban'
     };
     
-    const cellSize = 16;
-    const gridWidth = 20;
-    const gridHeight = 15;
+    const cellSize = 32;
+    let gridWidth = 20;
+    let gridHeight = 15;
     
-    function drawGrid() {
-      ctx.fillStyle = '#222';
-      ctx.fillRect(0, 0, 400, 240);
+    // 倉庫番のセルタイプ定義
+    const CellType = {
+      FLOOR: 0,
+      WALL: 1,
+      TARGET: 2,
+      BOX: 3,
+      PLAYER: 4,
+      BOX_ON_TARGET: 5,
+      PLAYER_ON_TARGET: 6
+    };
+    
+    function drawSokoban() {
+      if (!gameData.sokoban) return;
       
+      gridWidth = gameData.sokoban.width;
+      gridHeight = gameData.sokoban.height;
+      
+      // キャンバスサイズを調整
+      canvas.width = gridWidth * cellSize;
+      canvas.height = gridHeight * cellSize;
+      
+      // 背景をクリア
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 現在のマップを取得（サーバーサイドのgetCurrentMapを模倣）
+      const map = getCurrentMap();
+      
+      // セルを描画
+      for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+          const cellType = map[y][x];
+          drawCell(x, y, cellType);
+        }
+      }
+      
+      // グリッドラインを描画
       ctx.strokeStyle = '#333';
       ctx.lineWidth = 1;
       
@@ -68,7 +103,124 @@
       }
     }
     
-    function drawPlayer() {
+    function getCurrentMap() {
+      // サーバーサイドのgetCurrentMapと同じロジック
+      const map = Array(gridHeight).fill(null).map(() => 
+        Array(gridWidth).fill(CellType.FLOOR)
+      );
+
+      // 壁を配置
+      gameData.sokoban.walls.forEach(wall => {
+        map[wall.y][wall.x] = CellType.WALL;
+      });
+
+      // 目標地点を配置
+      gameData.sokoban.targets.forEach(target => {
+        map[target.y][target.x] = CellType.TARGET;
+      });
+
+      // 箱を配置
+      gameData.sokoban.boxes.forEach(box => {
+        const isOnTarget = gameData.sokoban.targets.some(target => 
+          target.x === box.x && target.y === box.y
+        );
+        map[box.y][box.x] = isOnTarget ? CellType.BOX_ON_TARGET : CellType.BOX;
+      });
+
+      // プレイヤーを配置
+      const player = gameData.sokoban.player;
+      const isPlayerOnTarget = gameData.sokoban.targets.some(target => 
+        target.x === player.x && target.y === player.y
+      );
+      map[player.y][player.x] = isPlayerOnTarget ? 
+        CellType.PLAYER_ON_TARGET : CellType.PLAYER;
+
+      return map;
+    }
+    
+    function drawCell(x, y, cellType) {
+      const pixelX = x * cellSize;
+      const pixelY = y * cellSize;
+      
+      switch (cellType) {
+        case CellType.FLOOR:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          break;
+        case CellType.WALL:
+          ctx.fillStyle = '#555';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          break;
+        case CellType.TARGET:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          ctx.fillStyle = '#ff0';
+          ctx.beginPath();
+          ctx.arc(pixelX + cellSize/2, pixelY + cellSize/2, cellSize/4, 0, 2 * Math.PI);
+          ctx.fill();
+          break;
+        case CellType.BOX:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          ctx.fillStyle = '#8b4513';
+          ctx.fillRect(pixelX + 2, pixelY + 2, cellSize - 4, cellSize - 4);
+          break;
+        case CellType.PLAYER:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          ctx.fillStyle = '#0ff';
+          ctx.beginPath();
+          ctx.arc(pixelX + cellSize/2, pixelY + cellSize/2, cellSize/3, 0, 2 * Math.PI);
+          ctx.fill();
+          break;
+        case CellType.BOX_ON_TARGET:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          ctx.fillStyle = '#ff0';
+          ctx.beginPath();
+          ctx.arc(pixelX + cellSize/2, pixelY + cellSize/2, cellSize/4, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.fillStyle = '#0f0';
+          ctx.fillRect(pixelX + 4, pixelY + 4, cellSize - 8, cellSize - 8);
+          break;
+        case CellType.PLAYER_ON_TARGET:
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(pixelX, pixelY, cellSize, cellSize);
+          ctx.fillStyle = '#ff0';
+          ctx.beginPath();
+          ctx.arc(pixelX + cellSize/2, pixelY + cellSize/2, cellSize/4, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.fillStyle = '#0ff';
+          ctx.beginPath();
+          ctx.arc(pixelX + cellSize/2, pixelY + cellSize/2, cellSize/3, 0, 2 * Math.PI);
+          ctx.fill();
+          break;
+      }
+    }
+    
+    function drawSimpleGame() {
+      // 従来のシンプルなゲーム描画
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      
+      for (let x = 0; x <= gridWidth; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * cellSize, 0);
+        ctx.lineTo(x * cellSize, gridHeight * cellSize);
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y <= gridHeight; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * cellSize);
+        ctx.lineTo(gridWidth * cellSize, y * cellSize);
+        ctx.stroke();
+      }
+      
+      // プレイヤーを描画
       ctx.fillStyle = '#0ff';
       ctx.fillRect(gameData.state.x * cellSize, gameData.state.y * cellSize, cellSize, cellSize);
     }
@@ -83,11 +235,28 @@
     
     function updateStatus() {
       const status = document.getElementById('status') || createStatusElement();
-      status.innerHTML = `
-        <div>Position: (${gameData.state.x}, ${gameData.state.y})</div>
-        <div>Total Operations: ${gameData.history.length}</div>
-        <div>WebSocket: Connected</div>
-      `;
+      
+      if (gameData.gameMode === 'sokoban' && gameData.sokoban) {
+        const allBoxesOnTargets = gameData.sokoban.boxes.every(box =>
+          gameData.sokoban.targets.some(target => target.x === box.x && target.y === box.y)
+        );
+        
+        status.innerHTML = `
+          <div>🎮 倉庫番ゲーム - レベル ${gameData.sokoban.level}</div>
+          <div>プレイヤー位置: (${gameData.sokoban.player.x}, ${gameData.sokoban.player.y})</div>
+          <div>移動回数: ${gameData.sokoban.moves}</div>
+          <div>箱: ${gameData.sokoban.boxes.length}個</div>
+          <div>目標達成: ${allBoxesOnTargets ? '🎉 クリア！' : '未完了'}</div>
+          <div>WebSocket: Connected</div>
+        `;
+      } else {
+        status.innerHTML = `
+          <div>シンプルモード</div>
+          <div>Position: (${gameData.state.x}, ${gameData.state.y})</div>
+          <div>Total Operations: ${gameData.history.length}</div>
+          <div>WebSocket: Connected</div>
+        `;
+      }
     }
     
     function createStatusElement() {
@@ -99,8 +268,11 @@
     }
     
     function render() {
-      drawGrid();
-      drawPlayer();
+      if (gameData.gameMode === 'sokoban' && gameData.sokoban) {
+        drawSokoban();
+      } else {
+        drawSimpleGame();
+      }
       requestAnimationFrame(render);
     }
     
