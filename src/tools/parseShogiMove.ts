@@ -5,15 +5,25 @@ export const parseShogiMove = createTool({
   id: 'parseShogiMove',
   description: '自然言語の将棋の指し手を解析して実行します（例：「7六歩」「角を5五に」「3三銀打ち」など）',
   inputSchema: z.object({
-    move: z.string().describe('将棋の指し手（例：7六歩、5五角、3三銀打ち）'),
+    move: z.string().optional().default('7六歩').describe('将棋の指し手（例：7六歩、5五角、3三銀打ち）'),
   }),
   outputSchema: z.object({
     success: z.boolean(),
     board: z.string().optional(),
     message: z.string().optional(),
   }),
-  execute: async ({ move }) => {
+  execute: async (params) => {
     try {
+      console.log(`🎯 将棋指し手解析開始: ${JSON.stringify(params)}`);
+      
+      let { move } = params;
+      
+      // undefinedの場合はデフォルト値を設定
+      if (!move) {
+        console.log(`⚠️ moveがundefinedのため、デフォルト値'7六歩'を使用`);
+        move = '7六歩';
+      }
+      
       if (global.gameData?.gameMode !== 'shogi') {
         return {
           success: false,
@@ -31,6 +41,7 @@ export const parseShogiMove = createTool({
 
       // 指し手のパターンを解析
       const moveText = move.trim();
+      console.log(`📝 解析対象: "${moveText}"`);
       
       // 投了パターン
       if (moveText.match(/投了|まいりました|負けました/)) {
@@ -119,7 +130,10 @@ function convertToYNumber(str: string): number {
     '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
     '六': 6, '七': 7, '八': 8, '九': 9,
     '1': 1, '2': 2, '3': 3, '4': 4, '5': 5,
-    '6': 6, '7': 7, '8': 8, '9': 9
+    '6': 6, '7': 7, '8': 8, '9': 9,
+    // 全角数字のサポート
+    '１': 1, '２': 2, '３': 3, '４': 4, '５': 5,
+    '６': 6, '７': 7, '８': 8, '９': 9
   };
   return kanjiToNum[str] || 1;
 }
