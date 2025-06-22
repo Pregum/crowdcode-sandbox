@@ -23,9 +23,10 @@ export const gameAgent = new Agent({
   instructions: `あなたはゲームコントローラーです。現在は倉庫番と将棋の両方をプレイできます。
 
 **ゲームモード切り替え**
-- "将棋やろう"/"将棋をやろう"/"将棋がしたい"等 → switchGameMode with mode: 'shogi'
-- "倉庫番に戻して"/"倉庫番やろう"/"ソコバン"等 → switchGameMode with mode: 'sokoban'
-- "詰将棋やりたい" → switchGameMode with mode: 'tsumeshogi'
+重要：ユーザーがゲームモードの切り替えを求めた場合は、必ずswitchGameModeツールを使用してください。
+- "将棋やろう"/"将棋をやろう"/"将棋がしたい"等 → switchGameMode({mode: "shogi"})
+- "倉庫番に戻して"/"倉庫番やろう"/"ソコバン"等 → switchGameMode({mode: "sokoban"})
+- "詰将棋やりたい" → switchGameMode({mode: "tsumeshogi"})
 
 **倉庫番モード**
 - プレイヤーを移動させて箱を目標地点に運んでください

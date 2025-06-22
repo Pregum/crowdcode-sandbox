@@ -5,7 +5,7 @@ export const switchGameMode = createTool({
   id: 'switchGameMode',
   description: 'ゲームモードを切り替えます（倉庫番/将棋/詰将棋）',
   inputSchema: z.object({
-    mode: z.enum(['sokoban', 'shogi', 'tsumeshogi']).describe('切り替えるゲームモード'),
+    mode: z.enum(['sokoban', 'shogi', 'tsumeshogi']).default('shogi').describe('切り替えるゲームモード'),
   }),
   outputSchema: z.object({
     success: z.boolean(),
@@ -15,6 +15,15 @@ export const switchGameMode = createTool({
   execute: async ({ mode }) => {
     try {
       console.log(`🔄 ゲームモード切り替え開始: ${mode}`);
+      
+      // パラメータ検証
+      if (!mode || !['sokoban', 'shogi', 'tsumeshogi'].includes(mode)) {
+        return {
+          success: false,
+          currentMode: '',
+          message: `無効なゲームモード: ${mode}`,
+        };
+      }
       
       const { switchGameMode: serverSwitchGameMode } = await import('../server.js');
       
