@@ -9,7 +9,9 @@
     "server:test": "TEST_MODE=true tsx watch src/server.ts",
     "client": "vite",
     "test:messages": "node scripts/test-messages.js",
-    "test:filesystem": "tsx src/testFilesystem.ts"
+    "test:filesystem": "tsx src/testFilesystem.ts",
+    "demo:shogi": "node scripts/shogi-demo.js",
+    "test:shogi": "node scripts/shogi-quick-test.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
