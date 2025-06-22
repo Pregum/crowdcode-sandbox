@@ -10,6 +10,7 @@ YouTube Liveのチャットメッセージを自然言語処理し、ブラウ�
 - 20×15グリッド上でのブロック移動表示
 - 操作ログの表示
 - ファイルシステム操作ツール（Vibe Coding基盤）
+- **マルチエージェント対応**: メッセージを適切なエージェントに自動振り分け
 
 ## セットアップ
 
@@ -139,11 +140,20 @@ npm run test:messages
 npm run test:filesystem
 ```
 
-テストモードでの使用例：
-- "srcディレクトリの中身を見せて"
-- "test.txtというファイルを作って、'Hello World'と書いて"
-- "oldファイルをnewにリネームして"
-- "tempディレクトリを作成して"
+### エージェント自動振り分け
+
+メッセージの内容に基づいて適切なエージェントに自動振り分けされます：
+
+#### ゲームコントロール
+- "右に一マス動かして" → gameエージェント
+- "左に2マス移動" → gameエージェント
+- "上に動かして" → gameエージェント
+
+#### ファイルシステム操作
+- "srcディレクトリの中身を見せて" → filesystemエージェント
+- "test.txtというファイルを作って、'Hello World'と書いて" → filesystemエージェント
+- "oldファイルをnewにリネームして" → filesystemエージェント
+- "tempディレクトリを作成して" → filesystemエージェント
 
 ## プロジェクト構成
 
@@ -161,6 +171,8 @@ npm run test:filesystem
 │   │       └─ moveFile.ts
 │   ├─ agent.ts              # ゲームコントローラーエージェント
 │   ├─ filesystemAgent.ts    # ファイルシステムエージェント
+│   ├─ routerAgent.ts        # ルーターエージェント（振り分け）
+│   ├─ agentRegistry.ts      # エージェント管理・ルーティング
 │   ├─ bridge.ts             # YouTubeチャット連携
 │   └─ server.ts             # WebSocketサーバー
 ├─ public/
