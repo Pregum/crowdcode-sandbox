@@ -51,6 +51,11 @@ export const listTools = createTool({
         category: 'game'
       },
       {
+        name: 'parseShogiMove',
+        description: '自然言語の将棋の指し手を解析して実行します（例：「7六歩」「5五角」）。',
+        category: 'game'
+      },
+      {
         name: 'moveShogiPiece',
         description: '将棋の駒を移動します。座標は1-9で指定します。',
         category: 'game'

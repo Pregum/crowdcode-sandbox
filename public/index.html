@@ -249,6 +249,25 @@
           <div>目標達成: ${allBoxesOnTargets ? '🎉 クリア！' : '未完了'}</div>
           <div>WebSocket: Connected</div>
         `;
+      } else if ((gameData.gameMode === 'shogi' || gameData.gameMode === 'tsumeshogi') && gameData.shogi) {
+        const modeText = gameData.gameMode === 'tsumeshogi' ? '詰将棋' : '通常将棋';
+        const currentPlayer = gameData.shogi.currentPlayer === 1 ? '先手' : '後手';
+        let statusText = `${currentPlayer}番`;
+        
+        if (gameData.shogi.isCheck) {
+          statusText += ' (王手)';
+        }
+        if (gameData.shogi.isCheckmate) {
+          const winner = gameData.shogi.winner === 1 ? '先手' : '後手';
+          statusText = `${winner}の勝ち！`;
+        }
+        
+        status.innerHTML = `
+          <div>⚔️ ${modeText}</div>
+          <div>手番: ${statusText}</div>
+          <div>手数: ${gameData.shogi.moves ? gameData.shogi.moves.length : 0}手</div>
+          <div>WebSocket: Connected</div>
+        `;
       } else {
         status.innerHTML = `
           <div>シンプルモード</div>
@@ -267,9 +286,230 @@
       return status;
     }
     
+    // 将棋の描画関数
+    function drawShogi() {
+      if (!gameData.shogi) return;
+      
+      const boardSize = 9;
+      const cellSize = 50;
+      const margin = 40;
+      
+      // キャンバスサイズを調整
+      canvas.width = boardSize * cellSize + margin * 2;
+      canvas.height = boardSize * cellSize + margin * 2 + 100; // 持ち駒表示用のスペース
+      
+      // 背景をクリア
+      ctx.fillStyle = '#f5deb3'; // 薄い木目色
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 盤面の背景
+      ctx.fillStyle = '#daa520';
+      ctx.fillRect(margin, margin, boardSize * cellSize, boardSize * cellSize);
+      
+      // グリッドを描画
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      
+      for (let i = 0; i <= boardSize; i++) {
+        // 縦線
+        ctx.beginPath();
+        ctx.moveTo(margin + i * cellSize, margin);
+        ctx.lineTo(margin + i * cellSize, margin + boardSize * cellSize);
+        ctx.stroke();
+        
+        // 横線
+        ctx.beginPath();
+        ctx.moveTo(margin, margin + i * cellSize);
+        ctx.lineTo(margin + boardSize * cellSize, margin + i * cellSize);
+        ctx.stroke();
+      }
+      
+      // 座標を表示
+      ctx.font = '14px sans-serif';
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // 上部の数字（1-9）
+      for (let x = 0; x < boardSize; x++) {
+        ctx.fillText(String(9 - x), margin + x * cellSize + cellSize / 2, margin - 10);
+      }
+      
+      // 右側の漢数字
+      const kanjiNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+      for (let y = 0; y < boardSize; y++) {
+        ctx.fillText(kanjiNumbers[y], margin + boardSize * cellSize + 15, margin + y * cellSize + cellSize / 2);
+      }
+      
+      // 駒を描画
+      if (gameData.shogi.board) {
+        for (let y = 0; y < boardSize; y++) {
+          for (let x = 0; x < boardSize; x++) {
+            const piece = gameData.shogi.board[y][x];
+            if (piece && piece.type !== 0) {
+              drawPiece(x, y, piece);
+            }
+          }
+        }
+      }
+      
+      // 持ち駒を描画
+      drawCapturedPieces();
+    }
+    
+    function drawPiece(x, y, piece) {
+      const cellSize = 50;
+      const margin = 40;
+      const centerX = margin + x * cellSize + cellSize / 2;
+      const centerY = margin + y * cellSize + cellSize / 2;
+      
+      // 駒の背景（五角形）
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      
+      // 後手の駒は180度回転
+      if (piece.owner === 2) {
+        ctx.rotate(Math.PI);
+      }
+      
+      // 駒の形を描画
+      ctx.beginPath();
+      ctx.moveTo(0, -cellSize * 0.4);
+      ctx.lineTo(cellSize * 0.35, -cellSize * 0.15);
+      ctx.lineTo(cellSize * 0.35, cellSize * 0.35);
+      ctx.lineTo(-cellSize * 0.35, cellSize * 0.35);
+      ctx.lineTo(-cellSize * 0.35, -cellSize * 0.15);
+      ctx.closePath();
+      
+      ctx.fillStyle = '#faebd7';
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      ctx.restore();
+      
+      // 駒の文字を描画
+      const pieceNames = {
+        1: '歩', 2: '香', 3: '桂', 4: '銀', 5: '金',
+        6: '角', 7: '飛', 8: '玉',
+        9: 'と', 10: '杏', 11: '圭', 12: '全',
+        13: '馬', 14: '龍'
+      };
+      
+      ctx.save();
+      ctx.font = 'bold 20px serif';
+      ctx.fillStyle = piece.owner === 2 ? '#800' : '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // 後手の駒の文字は逆さま
+      if (piece.owner === 2) {
+        ctx.translate(centerX, centerY);
+        ctx.rotate(Math.PI);
+        ctx.fillText(pieceNames[piece.type] || '', 0, 0);
+      } else {
+        ctx.fillText(pieceNames[piece.type] || '', centerX, centerY);
+      }
+      ctx.restore();
+    }
+    
+    function drawCapturedPieces() {
+      if (!gameData.shogi.capturedPieces) return;
+      
+      const cellSize = 50;
+      const margin = 40;
+      const boardBottom = margin + 9 * cellSize;
+      
+      // 先手の持ち駒（下側）
+      ctx.font = '16px sans-serif';
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'left';
+      ctx.fillText('先手持駒：', margin, boardBottom + 30);
+      
+      let xOffset = margin + 80;
+      const sentePieces = gameData.shogi.capturedPieces[1];
+      if (sentePieces) {
+        drawCapturedPieceList(sentePieces, xOffset, boardBottom + 20, 1);
+      }
+      
+      // 後手の持ち駒（上側）
+      ctx.fillText('後手持駒：', margin, margin - 20);
+      xOffset = margin + 80;
+      const gotePieces = gameData.shogi.capturedPieces[2];
+      if (gotePieces) {
+        drawCapturedPieceList(gotePieces, xOffset, margin - 30, 2);
+      }
+    }
+    
+    function drawCapturedPieceList(pieces, startX, y, owner) {
+      const pieceOrder = [7, 6, 5, 4, 3, 2, 1]; // 飛、角、金、銀、桂、香、歩
+      const pieceNames = {
+        1: '歩', 2: '香', 3: '桂', 4: '銀', 5: '金', 6: '角', 7: '飛'
+      };
+      
+      let x = startX;
+      for (const type of pieceOrder) {
+        if (pieces[type] && pieces[type] > 0) {
+          // 駒の形を描画（小さめ）
+          const size = 25;
+          ctx.save();
+          ctx.translate(x + size / 2, y + size / 2);
+          
+          if (owner === 2) {
+            ctx.rotate(Math.PI);
+          }
+          
+          ctx.beginPath();
+          ctx.moveTo(0, -size * 0.4);
+          ctx.lineTo(size * 0.35, -size * 0.15);
+          ctx.lineTo(size * 0.35, size * 0.35);
+          ctx.lineTo(-size * 0.35, size * 0.35);
+          ctx.lineTo(-size * 0.35, -size * 0.15);
+          ctx.closePath();
+          
+          ctx.fillStyle = '#faebd7';
+          ctx.fill();
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          
+          ctx.restore();
+          
+          // 駒の文字
+          ctx.save();
+          ctx.font = 'bold 14px serif';
+          ctx.fillStyle = owner === 2 ? '#800' : '#000';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          if (owner === 2) {
+            ctx.translate(x + size / 2, y + size / 2);
+            ctx.rotate(Math.PI);
+            ctx.fillText(pieceNames[type], 0, 0);
+          } else {
+            ctx.fillText(pieceNames[type], x + size / 2, y + size / 2);
+          }
+          ctx.restore();
+          
+          // 枚数を表示
+          if (pieces[type] > 1) {
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'left';
+            ctx.fillText(pieces[type], x + size + 2, y + size);
+          }
+          
+          x += size + 10;
+        }
+      }
+    }
+    
     function render() {
       if (gameData.gameMode === 'sokoban' && gameData.sokoban) {
         drawSokoban();
+      } else if ((gameData.gameMode === 'shogi' || gameData.gameMode === 'tsumeshogi') && gameData.shogi) {
+        drawShogi();
       } else {
         drawSimpleGame();
       }

@@ -12,6 +12,7 @@ import { showShogiBoard } from './tools/showShogiBoard.js';
 import { moveShogiPiece } from './tools/moveShogiPiece.js';
 import { dropShogiPiece } from './tools/dropShogiPiece.js';
 import { resignShogi } from './tools/resignShogi.js';
+import { parseShogiMove } from './tools/parseShogiMove.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -35,8 +36,9 @@ export const gameAgent = new Agent({
 
 **将棋モード**
 - showShogiBoard - 現在の盤面を表示
-- moveShogiPiece - 駒を移動（例："7六歩" → fromX:7, fromY:7, toX:7, toY:6）
-- dropShogiPiece - 持ち駒を打つ（例："3三角打ち" → piece:'KAKU', x:3, y:3）
+- parseShogiMove - 自然言語の指し手を解析（推奨：「7六歩」「5五角」「3三銀打ち」等）
+- moveShogiPiece - 駒を移動（座標直接指定）
+- dropShogiPiece - 持ち駒を打つ（駒種直接指定）
 - resignShogi - 投了
 
 **将棋の座標について**
@@ -64,6 +66,7 @@ export const gameAgent = new Agent({
     jumpToPosition,
     // 将棋
     showShogiBoard,
+    parseShogiMove,
     moveShogiPiece,
     dropShogiPiece,
     resignShogi
