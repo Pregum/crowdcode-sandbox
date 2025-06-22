@@ -54,6 +54,35 @@ export const parseShogiMove = createTool({
         return await resignShogi.execute({});
       }
 
+      // 「同」関連のパターン（例：同じく、同、同歩、同角）
+      const sameMatch = moveText.match(/^(同|同じく|同じ|同様に?)([歩香桂銀金角飛玉王と杏圭全馬龍])?(成|不成)?$/);
+      if (sameMatch) {
+        const lastPos = getLastMovePosition();
+        const pieceChar = sameMatch[2] || '歩'; // 駒が指定されていない場合は歩をデフォルト
+        const promote = sameMatch[3] === '成';
+        
+        console.log(`🎯 同じ場所への移動: (${lastPos.x},${lastPos.y}) 駒:${pieceChar}`);
+        
+        // 移動元を特定
+        const from = findMovablePosition(lastPos.x, lastPos.y, pieceChar);
+        
+        if (!from) {
+          return {
+            success: false,
+            message: `${pieceChar}を(${lastPos.x},${lastPos.y})に移動できる駒が見つかりません`,
+          };
+        }
+
+        const { moveShogiPiece } = await import('./moveShogiPiece.js');
+        return await moveShogiPiece.execute({ 
+          fromX: from.x, 
+          fromY: from.y, 
+          toX: lastPos.x, 
+          toY: lastPos.y, 
+          promote 
+        });
+      }
+
       // 持ち駒を打つパターン（例：3三銀打ち、５五角打）
       const dropMatch = moveText.match(/([1-9１-９])([一二三四五六七八九1-9])([歩香桂銀金角飛])打/);
       if (dropMatch) {
@@ -161,9 +190,11 @@ function convertToPieceType(char: string): string {
 function getLastMovePosition(): { x: number, y: number } {
   const state = global.gameData?.shogi;
   if (!state || !state.moves || state.moves.length === 0) {
+    console.log(`📍 移動履歴なし、デフォルト位置(5,5)を使用`);
     return { x: 5, y: 5 }; // デフォルト
   }
   const lastMove = state.moves[state.moves.length - 1];
+  console.log(`📍 最後の移動位置: (${lastMove.to.x},${lastMove.to.y})`);
   return lastMove.to;
 }
 
